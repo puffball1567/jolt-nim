@@ -2351,7 +2351,7 @@ proc joltCppStringCStr_String*(self: String): cstring {.importcpp: "(char *)(#.c
 proc joltInitCppString_String*(value: cstring): String {.importcpp: "JPH::String(@)", constructor, header: joltApiHeader.}
 proc constructStdStringView*(value: cstring): StdStringView {.importcpp: "std::string_view(@)", constructor, header: "<string_view>".}
 proc constructStdStringView*(value: cstring; length: csize_t): StdStringView {.importcpp: "std::string_view(@)", constructor, header: "<string_view>".}
-proc data*(self: StdStringView): cstring {.importcpp: "#.data()", noSideEffect, header: "<string_view>".}
+proc data*(self: StdStringView): cstring {.importcpp: "joltnim_raw_detail::Mutable(#.data())", noSideEffect, header: joltApiHeader.}
 proc size*(self: StdStringView): csize_t {.importcpp: "#.size()", noSideEffect, header: "<string_view>".}
 converter joltToNimString_String*(self: String): string = $joltCppStringCStr_String(self)
 converter joltToCppString_String*(value: string): String = joltInitCppString_String(cstring(value))
@@ -3154,9 +3154,9 @@ proc GetPtr*[T](self: Ref[T]): ptr T {.importcpp: "#.GetPtr(@)", noSideEffect, h
 proc GetHash*[T](self: Ref[T]): uint64 {.importcpp: "#.GetHash(@)", noSideEffect, header: joltApiHeader.}
 proc InternalGetPointer*[T](self: var Ref[T]): ptr pointer {.importcpp: "#.InternalGetPointer(@)", header: joltApiHeader.}
 proc `*`*[T](self: Ref[T]): ptr T {.importcpp: "(&(*#))", noSideEffect, header: joltApiHeader.}
-proc `==`*[T](self: Ref[T]; inRHS: ptr T): bool {.importcpp: "(# == #)", noSideEffect, header: joltApiHeader.}
+proc `==`*[T](self: Ref[T]; inRHS: ptr T): bool {.importcpp: "(#.GetPtr() == #)", noSideEffect, header: joltApiHeader.}
 proc `==`*[T](self: Ref[T]; inRHS: Ref[T]): bool {.importcpp: "(# == #)", noSideEffect, header: joltApiHeader.}
-proc `!=`*[T](self: Ref[T]; inRHS: ptr T): bool {.importcpp: "(# != #)", noSideEffect, header: joltApiHeader.}
+proc `!=`*[T](self: Ref[T]; inRHS: ptr T): bool {.importcpp: "(#.GetPtr() != #)", noSideEffect, header: joltApiHeader.}
 proc `!=`*[T](self: Ref[T]; inRHS: Ref[T]): bool {.importcpp: "(# != #)", noSideEffect, header: joltApiHeader.}
 
 proc constructRefConst*[T](): RefConst[T] {.importcpp: "'0(@)", constructor, header: joltApiHeader.}
@@ -3170,14 +3170,14 @@ proc assign*[T](self: var RefConst[T]; inRHS: RefConst[T]): ptr RefConst[T] {.im
 proc assign*[T](self: var RefConst[T]; inRHS: Ref[T]): ptr RefConst[T] {.importcpp: "&(# = #)", header: joltApiHeader.}
 proc assignMove*[T](self: var RefConst[T]; inRHS: var RefConst[T]): ptr RefConst[T] {.importcpp: "&(# = std::move(#))", header: joltApiHeader.}
 proc assignMove*[T](self: var RefConst[T]; inRHS: var Ref[T]): ptr RefConst[T] {.importcpp: "&(# = std::move(#))", header: joltApiHeader.}
-proc GetPtr*[T](self: RefConst[T]): ptr T {.importcpp: "#.GetPtr(@)", noSideEffect, header: joltApiHeader.}
+proc GetPtr*[T](self: RefConst[T]): ptr T {.importcpp: "joltnim_raw_detail::Mutable(#.GetPtr(@))", noSideEffect, header: joltApiHeader.}
 proc GetHash*[T](self: RefConst[T]): uint64 {.importcpp: "#.GetHash(@)", noSideEffect, header: joltApiHeader.}
 proc InternalGetPointer*[T](self: var RefConst[T]): ptr pointer {.importcpp: "#.InternalGetPointer(@)", header: joltApiHeader.}
-proc `*`*[T](self: RefConst[T]): ptr T {.importcpp: "(&(*#))", noSideEffect, header: joltApiHeader.}
-proc `==`*[T](self: RefConst[T]; inRHS: ptr T): bool {.importcpp: "(# == #)", noSideEffect, header: joltApiHeader.}
+proc `*`*[T](self: RefConst[T]): ptr T {.importcpp: "joltnim_raw_detail::Mutable(&(*#))", noSideEffect, header: joltApiHeader.}
+proc `==`*[T](self: RefConst[T]; inRHS: ptr T): bool {.importcpp: "(#.GetPtr() == #)", noSideEffect, header: joltApiHeader.}
 proc `==`*[T](self: RefConst[T]; inRHS: RefConst[T]): bool {.importcpp: "(# == #)", noSideEffect, header: joltApiHeader.}
 proc `==`*[T](self: RefConst[T]; inRHS: Ref[T]): bool {.importcpp: "(# == #)", noSideEffect, header: joltApiHeader.}
-proc `!=`*[T](self: RefConst[T]; inRHS: ptr T): bool {.importcpp: "(# != #)", noSideEffect, header: joltApiHeader.}
+proc `!=`*[T](self: RefConst[T]; inRHS: ptr T): bool {.importcpp: "(#.GetPtr() != #)", noSideEffect, header: joltApiHeader.}
 proc `!=`*[T](self: RefConst[T]; inRHS: RefConst[T]): bool {.importcpp: "(# != #)", noSideEffect, header: joltApiHeader.}
 proc `!=`*[T](self: RefConst[T]; inRHS: Ref[T]): bool {.importcpp: "(# != #)", noSideEffect, header: joltApiHeader.}
 
@@ -3246,7 +3246,7 @@ proc ApplyBuoyancyImpulse*(self: var Body; inSurfacePosition: RVec3Arg; inSurfac
 proc ApplyBuoyancyImpulse*(self: var Body; inTotalVolume: cfloat; inSubmergedVolume: cfloat; inRelativeCenterOfBuoyancy: Vec3Arg; inBuoyancy: cfloat; inLinearDrag: cfloat; inAngularDrag: cfloat; inFluidVelocity: Vec3Arg; inGravity: Vec3Arg; inDeltaTime: cfloat): bool {.importcpp: "#.ApplyBuoyancyImpulse(@)", header: joltApiHeader.}
 proc IsInBroadPhase*(self: Body): bool {.importcpp: "#.IsInBroadPhase(@)", noSideEffect, header: joltApiHeader.}
 proc IsCollisionCacheInvalid*(self: Body): bool {.importcpp: "#.IsCollisionCacheInvalid(@)", noSideEffect, header: joltApiHeader.}
-proc GetShape*(self: Body): ptr Shape {.importcpp: "#.GetShape(@)", noSideEffect, header: joltApiHeader.}
+proc GetShape*(self: Body): ptr Shape {.importcpp: "const_cast<JPH::Shape *>(#.GetShape(@))", noSideEffect, header: joltApiHeader.}
 proc GetPosition*(self: Body): RVec3 {.importcpp: "#.GetPosition(@)", noSideEffect, header: joltApiHeader.}
 proc GetRotation*(self: Body): Quat {.importcpp: "#.GetRotation(@)", noSideEffect, header: joltApiHeader.}
 proc GetWorldTransform*(self: Body): RMat44 {.importcpp: "#.GetWorldTransform(@)", noSideEffect, header: joltApiHeader.}
@@ -3288,10 +3288,10 @@ proc constructBodyCreationSettings*(): BodyCreationSettings {.importcpp: "JPH::B
 proc constructBodyCreationSettings*(inShape: ptr ShapeSettings; inPosition: RVec3Arg; inRotation: QuatArg; inMotionType: EMotionType; inObjectLayer: ObjectLayer): BodyCreationSettings {.importcpp: "JPH::BodyCreationSettings(@)", constructor, header: joltApiHeader.}
 proc constructBodyCreationSettings*(inShape: ptr Shape; inPosition: RVec3Arg; inRotation: QuatArg; inMotionType: EMotionType; inObjectLayer: ObjectLayer): BodyCreationSettings {.importcpp: "JPH::BodyCreationSettings(@)", constructor, header: joltApiHeader.}
 proc sCreateRTTI*(_: type BodyCreationSettings; inRTTI: var RTTI) {.importcpp: "JPH::BodyCreationSettings::sCreateRTTI(@)", header: joltApiHeader.}
-proc GetShapeSettings*(self: BodyCreationSettings): ptr ShapeSettings {.importcpp: "#.GetShapeSettings(@)", noSideEffect, header: joltApiHeader.}
+proc GetShapeSettings*(self: BodyCreationSettings): ptr ShapeSettings {.importcpp: "const_cast<JPH::ShapeSettings *>(#.GetShapeSettings(@))", noSideEffect, header: joltApiHeader.}
 proc SetShapeSettings*(self: var BodyCreationSettings; inShape: ptr ShapeSettings) {.importcpp: "#.SetShapeSettings(@)", header: joltApiHeader.}
 proc ConvertShapeSettings*(self: var BodyCreationSettings): ShapeResult {.importcpp: "#.ConvertShapeSettings(@)", header: joltApiHeader.}
-proc GetShape*(self: BodyCreationSettings): ptr Shape {.importcpp: "#.GetShape(@)", noSideEffect, header: joltApiHeader.}
+proc GetShape*(self: BodyCreationSettings): ptr Shape {.importcpp: "const_cast<JPH::Shape *>(#.GetShape(@))", noSideEffect, header: joltApiHeader.}
 proc SetShape*(self: var BodyCreationSettings; inShape: ptr Shape) {.importcpp: "#.SetShape(@)", header: joltApiHeader.}
 proc HasMassProperties*(self: BodyCreationSettings): bool {.importcpp: "#.HasMassProperties(@)", noSideEffect, header: joltApiHeader.}
 proc GetMassProperties*(self: BodyCreationSettings): MassProperties {.importcpp: "#.GetMassProperties(@)", noSideEffect, header: joltApiHeader.}
@@ -3796,7 +3796,7 @@ proc assignMove*[Type](self: var Result[Type]; inRHS: var Result[Type]): ptr Res
 proc Clear*[Type](self: var Result[Type]) {.importcpp: "#.Clear(@)", header: joltApiHeader.}
 proc IsEmpty*[Type](self: Result[Type]): bool {.importcpp: "#.IsEmpty(@)", noSideEffect, header: joltApiHeader.}
 proc IsValid*[Type](self: Result[Type]): bool {.importcpp: "#.IsValid(@)", noSideEffect, header: joltApiHeader.}
-proc Get*[Type](self: Result[Type]): ptr Type {.importcpp: "&(#.Get(@))", noSideEffect, header: joltApiHeader.}
+proc Get*[Type](self: Result[Type]): ptr Type {.importcpp: "joltnim_raw_detail::Mutable(&(#.Get(@)))", noSideEffect, header: joltApiHeader.}
 proc Set*[Type](self: var Result[Type]; inResult: Type) {.importcpp: "#.Set(@)", header: joltApiHeader.}
 proc SetMove*[Type](self: var Result[Type]; inResult: var Type) {.importcpp: "#.Set(std::move(#))", header: joltApiHeader.}
 proc HasError*[Type](self: Result[Type]): bool {.importcpp: "#.HasError(@)", noSideEffect, header: joltApiHeader.}
@@ -4176,7 +4176,7 @@ proc GetMaxBuckets*[Key, Value](self: LockFreeHashMap[Key, Value]): uint32 {.imp
 proc SetNumBuckets*[Key, Value](self: var LockFreeHashMap[Key, Value]; inNumBuckets: uint32) {.importcpp: "#.SetNumBuckets(@)", header: joltApiHeader.}
 proc Create*[Key, Value](self: var LockFreeHashMap[Key, Value]; ioContext: var LFHMAllocatorContext; inKey: Key; inKeyHash: uint64; inExtraBytes: cint): ptr LockFreeHashMap_KeyValue[Key, Value] {.importcpp: "#.Create(@)", header: joltApiHeader.}
 proc Create*[Key, Value, Param](self: var LockFreeHashMap[Key, Value]; ioContext: var LFHMAllocatorContext; inKey: Key; inKeyHash: uint64; inExtraBytes: cint; inConstructorParam: Param): ptr LockFreeHashMap_KeyValue[Key, Value] {.importcpp: "#.Create(@)", header: joltApiHeader.}
-proc Find*[Key, Value](self: LockFreeHashMap[Key, Value]; inKey: Key; inKeyHash: uint64): ptr LockFreeHashMap_KeyValue[Key, Value] {.importcpp: "#.Find(@)", noSideEffect, header: joltApiHeader.}
+proc Find*[Key, Value](self: LockFreeHashMap[Key, Value]; inKey: Key; inKeyHash: uint64): ptr LockFreeHashMap_KeyValue[Key, Value] {.importcpp: "joltnim_raw_detail::Mutable(#.Find(@))", noSideEffect, header: joltApiHeader.}
 proc ToHandle*[Key, Value](self: LockFreeHashMap[Key, Value]; inKeyValue: ptr LockFreeHashMap_KeyValue[Key, Value]): uint32 {.importcpp: "#.ToHandle(@)", noSideEffect, header: joltApiHeader.}
 proc FromHandle*[Key, Value](self: LockFreeHashMap[Key, Value]; inHandle: uint32): ptr LockFreeHashMap_KeyValue[Key, Value] {.importcpp: "#.FromHandle(@)", noSideEffect, header: joltApiHeader.}
 proc GetNumKeyValues*[Key, Value](self: LockFreeHashMap[Key, Value]): uint32 {.importcpp: "#.GetNumKeyValues(@)", noSideEffect, header: joltApiHeader.}
@@ -4477,17 +4477,17 @@ proc GetCombineFriction*(self: PhysicsSystem): ContactConstraintManager_CombineF
 proc SetCombineRestitution*(self: var PhysicsSystem; inCombineRestitution: ContactConstraintManager_CombineFunction) {.importcpp: "#.SetCombineRestitution(@)", header: joltApiHeader.}
 proc GetCombineRestitution*(self: PhysicsSystem): ContactConstraintManager_CombineFunction {.importcpp: "#.GetCombineRestitution(@)", noSideEffect, header: joltApiHeader.}
 proc SetSimShapeFilter*(self: var PhysicsSystem; inShapeFilter: ptr SimShapeFilter) {.importcpp: "#.SetSimShapeFilter(@)", header: joltApiHeader.}
-proc GetSimShapeFilter*(self: PhysicsSystem): ptr SimShapeFilter {.importcpp: "#.GetSimShapeFilter(@)", noSideEffect, header: joltApiHeader.}
+proc GetSimShapeFilter*(self: PhysicsSystem): ptr SimShapeFilter {.importcpp: "const_cast<JPH::SimShapeFilter *>(#.GetSimShapeFilter(@))", noSideEffect, header: joltApiHeader.}
 proc SetSimCollideBodyVsBody*(self: var PhysicsSystem; inBodyVsBody: PhysicsSystem_SimCollideBodyVsBody) {.importcpp: "#.SetSimCollideBodyVsBody(@)", header: joltApiHeader.}
-proc GetSimCollideBodyVsBody*(self: PhysicsSystem): ptr PhysicsSystem_SimCollideBodyVsBodyRef {.importcpp: "&(#.GetSimCollideBodyVsBody(@))", noSideEffect, header: joltApiHeader.}
+proc GetSimCollideBodyVsBody*(self: PhysicsSystem): ptr PhysicsSystem_SimCollideBodyVsBodyRef {.importcpp: "const_cast<JPH::PhysicsSystem::SimCollideBodyVsBody *>(&(#.GetSimCollideBodyVsBody(@)))", noSideEffect, header: joltApiHeader.}
 proc sDefaultSimCollideBodyVsBody*(_: type PhysicsSystem; inBody1: Body; inBody2: Body; inCenterOfMassTransform1: Mat44Arg; inCenterOfMassTransform2: Mat44Arg; ioCollideShapeSettings: var CollideShapeSettings; ioCollector: var CollideShapeCollector; inShapeFilter: ShapeFilter) {.importcpp: "JPH::PhysicsSystem::sDefaultSimCollideBodyVsBody(@)", header: joltApiHeader.}
 proc SetPhysicsSettings*(self: var PhysicsSystem; inSettings: PhysicsSettings) {.importcpp: "#.SetPhysicsSettings(@)", header: joltApiHeader.}
-proc GetPhysicsSettings*(self: PhysicsSystem): ptr PhysicsSettings {.importcpp: "&(#.GetPhysicsSettings())", noSideEffect, header: joltApiHeader.}
-proc GetBodyInterface*(self: PhysicsSystem): ptr BodyInterface {.importcpp: "&(#.GetBodyInterface())", noSideEffect, header: joltApiHeader.}
-proc GetBodyInterfaceNoLock*(self: PhysicsSystem): ptr BodyInterface {.importcpp: "&(#.GetBodyInterfaceNoLock())", noSideEffect, header: joltApiHeader.}
-proc GetBroadPhaseQuery*(self: PhysicsSystem): ptr BroadPhaseQuery {.importcpp: "&(#.GetBroadPhaseQuery())", noSideEffect, header: joltApiHeader.}
-proc GetNarrowPhaseQuery*(self: PhysicsSystem): ptr NarrowPhaseQuery {.importcpp: "&(#.GetNarrowPhaseQuery())", noSideEffect, header: joltApiHeader.}
-proc GetNarrowPhaseQueryNoLock*(self: PhysicsSystem): ptr NarrowPhaseQuery {.importcpp: "&(#.GetNarrowPhaseQueryNoLock())", noSideEffect, header: joltApiHeader.}
+proc GetPhysicsSettings*(self: PhysicsSystem): ptr PhysicsSettings {.importcpp: "const_cast<JPH::PhysicsSettings *>(&(#.GetPhysicsSettings()))", noSideEffect, header: joltApiHeader.}
+proc GetBodyInterface*(self: PhysicsSystem): ptr BodyInterface {.importcpp: "const_cast<JPH::BodyInterface *>(&(#.GetBodyInterface()))", noSideEffect, header: joltApiHeader.}
+proc GetBodyInterfaceNoLock*(self: PhysicsSystem): ptr BodyInterface {.importcpp: "const_cast<JPH::BodyInterface *>(&(#.GetBodyInterfaceNoLock()))", noSideEffect, header: joltApiHeader.}
+proc GetBroadPhaseQuery*(self: PhysicsSystem): ptr BroadPhaseQuery {.importcpp: "const_cast<JPH::BroadPhaseQuery *>(&(#.GetBroadPhaseQuery()))", noSideEffect, header: joltApiHeader.}
+proc GetNarrowPhaseQuery*(self: PhysicsSystem): ptr NarrowPhaseQuery {.importcpp: "const_cast<JPH::NarrowPhaseQuery *>(&(#.GetNarrowPhaseQuery()))", noSideEffect, header: joltApiHeader.}
+proc GetNarrowPhaseQueryNoLock*(self: PhysicsSystem): ptr NarrowPhaseQuery {.importcpp: "const_cast<JPH::NarrowPhaseQuery *>(&(#.GetNarrowPhaseQueryNoLock()))", noSideEffect, header: joltApiHeader.}
 proc AddConstraint*(self: var PhysicsSystem; inConstraint: ptr Constraint) {.importcpp: "#.AddConstraint(@)", header: joltApiHeader.}
 proc RemoveConstraint*(self: var PhysicsSystem; inConstraint: ptr Constraint) {.importcpp: "#.RemoveConstraint(@)", header: joltApiHeader.}
 proc AddConstraints*(self: var PhysicsSystem; inConstraints: pointer; inNumber: cint) {.importcpp: "#.AddConstraints(@)", header: joltApiHeader.}
@@ -4503,11 +4503,11 @@ proc SaveBodyState*(self: PhysicsSystem; inBody: Body; inStream: var StateRecord
 proc RestoreBodyState*(self: var PhysicsSystem; ioBody: var Body; inStream: var StateRecorder) {.importcpp: "#.RestoreBodyState(@)", header: joltApiHeader.}
 proc SetGravity*(self: var PhysicsSystem; inGravity: Vec3Arg) {.importcpp: "#.SetGravity(@)", header: joltApiHeader.}
 proc GetGravity*(self: PhysicsSystem): Vec3 {.importcpp: "#.GetGravity(@)", noSideEffect, header: joltApiHeader.}
-proc GetBodyLockInterfaceNoLock*(self: PhysicsSystem): ptr BodyLockInterfaceNoLock {.importcpp: "&(#.GetBodyLockInterfaceNoLock())", noSideEffect, header: joltApiHeader.}
-proc GetBodyLockInterface*(self: PhysicsSystem): ptr BodyLockInterfaceLocking {.importcpp: "&(#.GetBodyLockInterface())", noSideEffect, header: joltApiHeader.}
-proc GetBroadPhaseLayerInterface*(self: PhysicsSystem): ptr BroadPhaseLayerInterface {.importcpp: "&(#.GetBroadPhaseLayerInterface(@))", noSideEffect, header: joltApiHeader.}
-proc GetObjectVsBroadPhaseLayerFilter*(self: PhysicsSystem): ptr ObjectVsBroadPhaseLayerFilter {.importcpp: "&(#.GetObjectVsBroadPhaseLayerFilter(@))", noSideEffect, header: joltApiHeader.}
-proc GetObjectLayerPairFilter*(self: PhysicsSystem): ptr ObjectLayerPairFilter {.importcpp: "&(#.GetObjectLayerPairFilter(@))", noSideEffect, header: joltApiHeader.}
+proc GetBodyLockInterfaceNoLock*(self: PhysicsSystem): ptr BodyLockInterfaceNoLock {.importcpp: "const_cast<JPH::BodyLockInterfaceNoLock *>(&(#.GetBodyLockInterfaceNoLock()))", noSideEffect, header: joltApiHeader.}
+proc GetBodyLockInterface*(self: PhysicsSystem): ptr BodyLockInterfaceLocking {.importcpp: "const_cast<JPH::BodyLockInterfaceLocking *>(&(#.GetBodyLockInterface()))", noSideEffect, header: joltApiHeader.}
+proc GetBroadPhaseLayerInterface*(self: PhysicsSystem): ptr BroadPhaseLayerInterface {.importcpp: "const_cast<JPH::BroadPhaseLayerInterface *>(&(#.GetBroadPhaseLayerInterface(@)))", noSideEffect, header: joltApiHeader.}
+proc GetObjectVsBroadPhaseLayerFilter*(self: PhysicsSystem): ptr ObjectVsBroadPhaseLayerFilter {.importcpp: "const_cast<JPH::ObjectVsBroadPhaseLayerFilter *>(&(#.GetObjectVsBroadPhaseLayerFilter(@)))", noSideEffect, header: joltApiHeader.}
+proc GetObjectLayerPairFilter*(self: PhysicsSystem): ptr ObjectLayerPairFilter {.importcpp: "const_cast<JPH::ObjectLayerPairFilter *>(&(#.GetObjectLayerPairFilter(@)))", noSideEffect, header: joltApiHeader.}
 proc GetDefaultBroadPhaseLayerFilter*(self: PhysicsSystem; inLayer: ObjectLayer): DefaultBroadPhaseLayerFilter {.importcpp: "#.GetDefaultBroadPhaseLayerFilter(@)", noSideEffect, header: joltApiHeader.}
 proc GetDefaultLayerFilter*(self: PhysicsSystem; inLayer: ObjectLayer): DefaultObjectLayerFilter {.importcpp: "#.GetDefaultLayerFilter(@)", noSideEffect, header: joltApiHeader.}
 proc GetNumBodies*(self: PhysicsSystem): uint {.importcpp: "#.GetNumBodies(@)", noSideEffect, header: joltApiHeader.}
@@ -6022,10 +6022,10 @@ proc SetMaxSlopeAngle*(self: var CharacterBase; inMaxSlopeAngle: cfloat) {.impor
 proc GetCosMaxSlopeAngle*(self: CharacterBase): cfloat {.importcpp: "#.GetCosMaxSlopeAngle(@)", noSideEffect, header: joltApiHeader.}
 proc SetUp*(self: var CharacterBase; inUp: Vec3Arg) {.importcpp: "#.SetUp(@)", header: joltApiHeader.}
 proc GetUp*(self: CharacterBase): Vec3 {.importcpp: "#.GetUp(@)", noSideEffect, header: joltApiHeader.}
-proc GetSupportingVolume*(self: CharacterBase): ptr Plane {.importcpp: "&(#.GetSupportingVolume(@))", noSideEffect, header: joltApiHeader.}
+proc GetSupportingVolume*(self: CharacterBase): ptr Plane {.importcpp: "const_cast<JPH::Plane *>(&(#.GetSupportingVolume(@)))", noSideEffect, header: joltApiHeader.}
 proc SetSupportingVolume*(self: var CharacterBase; inPlane: Plane) {.importcpp: "#.SetSupportingVolume(@)", header: joltApiHeader.}
 proc IsSlopeTooSteep*(self: CharacterBase; inNormal: Vec3Arg): bool {.importcpp: "#.IsSlopeTooSteep(@)", noSideEffect, header: joltApiHeader.}
-proc GetShape*(self: CharacterBase): ptr Shape {.importcpp: "#.GetShape(@)", noSideEffect, header: joltApiHeader.}
+proc GetShape*(self: CharacterBase): ptr Shape {.importcpp: "const_cast<JPH::Shape *>(#.GetShape(@))", noSideEffect, header: joltApiHeader.}
 proc sToString*(_: type CharacterBase; inState: EGroundState): cstring {.importcpp: "JPH::CharacterBase::sToString(@)", header: joltApiHeader.}
 proc GetGroundState*(self: CharacterBase): EGroundState {.importcpp: "#.GetGroundState(@)", noSideEffect, header: joltApiHeader.}
 proc IsSupported*(self: CharacterBase): bool {.importcpp: "#.IsSupported(@)", noSideEffect, header: joltApiHeader.}
@@ -7000,11 +7000,11 @@ proc GetConstraintSettings*(self: VehicleConstraint): Ref[ConstraintSettings] {.
 proc GetObjectLayer*(self: VehicleCollisionTester): ObjectLayer {.importcpp: "#.GetObjectLayer(@)", noSideEffect, header: joltApiHeader.}
 proc SetObjectLayer*(self: var VehicleCollisionTester; inObjectLayer: ObjectLayer) {.importcpp: "#.SetObjectLayer(@)", header: joltApiHeader.}
 proc SetBroadPhaseLayerFilter*(self: var VehicleCollisionTester; inFilter: ptr BroadPhaseLayerFilter) {.importcpp: "#.SetBroadPhaseLayerFilter(@)", header: joltApiHeader.}
-proc GetBroadPhaseLayerFilter*(self: VehicleCollisionTester): ptr BroadPhaseLayerFilter {.importcpp: "#.GetBroadPhaseLayerFilter(@)", noSideEffect, header: joltApiHeader.}
+proc GetBroadPhaseLayerFilter*(self: VehicleCollisionTester): ptr BroadPhaseLayerFilter {.importcpp: "joltnim_raw_detail::Mutable(#.GetBroadPhaseLayerFilter(@))", noSideEffect, header: joltApiHeader.}
 proc SetObjectLayerFilter*(self: var VehicleCollisionTester; inFilter: ptr ObjectLayerFilter) {.importcpp: "#.SetObjectLayerFilter(@)", header: joltApiHeader.}
-proc GetObjectLayerFilter*(self: VehicleCollisionTester): ptr ObjectLayerFilter {.importcpp: "#.GetObjectLayerFilter(@)", noSideEffect, header: joltApiHeader.}
+proc GetObjectLayerFilter*(self: VehicleCollisionTester): ptr ObjectLayerFilter {.importcpp: "joltnim_raw_detail::Mutable(#.GetObjectLayerFilter(@))", noSideEffect, header: joltApiHeader.}
 proc SetBodyFilter*(self: var VehicleCollisionTester; inFilter: ptr BodyFilter) {.importcpp: "#.SetBodyFilter(@)", header: joltApiHeader.}
-proc GetBodyFilter*(self: VehicleCollisionTester): ptr BodyFilter {.importcpp: "#.GetBodyFilter(@)", noSideEffect, header: joltApiHeader.}
+proc GetBodyFilter*(self: VehicleCollisionTester): ptr BodyFilter {.importcpp: "joltnim_raw_detail::Mutable(#.GetBodyFilter(@))", noSideEffect, header: joltApiHeader.}
 proc Collide*(self: VehicleCollisionTester; inPhysicsSystem: var PhysicsSystem; inVehicleConstraint: VehicleConstraint; inWheelIndex: uint; inOrigin: RVec3Arg; inDirection: Vec3Arg; inVehicleBodyID: BodyID; outBody: var ptr Body; outSubShapeID: var SubShapeID; outContactPosition: var RVec3; outContactNormal: var Vec3; outSuspensionLength: var cfloat): bool {.importcpp: "#.Collide(@)", noSideEffect, header: joltApiHeader.}
 proc PredictContactProperties*(self: VehicleCollisionTester; inPhysicsSystem: var PhysicsSystem; inVehicleConstraint: VehicleConstraint; inWheelIndex: uint; inOrigin: RVec3Arg; inDirection: Vec3Arg; inVehicleBodyID: BodyID; ioBody: var ptr Body; ioSubShapeID: var SubShapeID; ioContactPosition: var RVec3; ioContactNormal: var Vec3; ioSuspensionLength: var cfloat) {.importcpp: "#.PredictContactProperties(@)", noSideEffect, header: joltApiHeader.}
 
@@ -7607,9 +7607,9 @@ type
 proc CreateObject*(self: var Factory; inName: cstring): pointer
   {.importcpp: "#.CreateObject(@)", header: joltApiHeader.}
 proc Find*(self: var Factory; inName: cstring): ptr RTTI
-  {.importcpp: "#.Find(@)", header: joltApiHeader.}
+  {.importcpp: "const_cast<JPH::RTTI *>(#.Find(@))", header: joltApiHeader.}
 proc Find*(self: var Factory; inHash: uint32): ptr RTTI
-  {.importcpp: "#.Find(@)", header: joltApiHeader.}
+  {.importcpp: "const_cast<JPH::RTTI *>(#.Find(@))", header: joltApiHeader.}
 proc Register*(self: var Factory; inRTTI: ptr RTTI): bool
   {.importcpp: "#.Register(@)", header: joltApiHeader.}
 proc Register*(self: var Factory; inRTTIs: ptr ptr RTTI;

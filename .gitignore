@@ -2,6 +2,7 @@
 __pycache__/
 *.pyc
 /tests/test_raw
+/tests/test_all
 /tests/test_falling_box
 /tests/test_shapes_and_motion
 /tests/test_extended_shapes
