@@ -145,16 +145,14 @@
 #include <Jolt/Geometry/RayCylinder.h>
 #include <Jolt/Geometry/RaySphere.h>
 #include <Jolt/Geometry/RayTriangle.h>
-#include <Jolt/ObjectStream/GetPrimitiveTypeOfType.h>
 #include <Jolt/ObjectStream/ObjectStreamBinaryIn.h>
 #include <Jolt/ObjectStream/ObjectStreamBinaryOut.h>
 #include <Jolt/ObjectStream/ObjectStreamIn.h>
 #include <Jolt/ObjectStream/ObjectStreamOut.h>
 #include <Jolt/ObjectStream/ObjectStreamTextIn.h>
 #include <Jolt/ObjectStream/ObjectStreamTextOut.h>
-#include <Jolt/ObjectStream/SerializableAttributeEnum.h>
-#include <Jolt/ObjectStream/SerializableAttributeTyped.h>
 #include <Jolt/ObjectStream/TypeDeclarations.h>
+#include <Jolt/ObjectStream/GetPrimitiveTypeOfType.h>
 #include <Jolt/AABBTree/AABBTreeBuilder.h>
 #include <Jolt/AABBTree/AABBTreeToBuffer.h>
 #include <Jolt/AABBTree/NodeCodec/NodeCodecQuadTreeHalfFloat.h>

@@ -48,7 +48,7 @@ jobs:
           -DJPH_USE_VK=OFF
           -DJPH_USE_MTL=OFF
           -DJPH_USE_CPU_COMPUTE=ON
-          -DINTERPROCEDURAL_OPTIMIZATION=ON
+          -DINTERPROCEDURAL_OPTIMIZATION=OFF
 
       - name: Build Jolt Physics
         shell: bash

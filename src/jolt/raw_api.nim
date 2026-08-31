@@ -3690,7 +3690,7 @@ proc sIntersectPlanes*(_: type Plane; inP1: Plane; inP2: Plane; inP3: Plane; out
 
 proc constructRTTI*(inName: cstring; inSize: cint; inCreateObject: RTTI_pCreateObjectFunction; inDestructObject: RTTI_pDestructObjectFunction): RTTI {.importcpp: "JPH::RTTI(@)", constructor, header: joltApiHeader.}
 proc constructRTTI*(inName: cstring; inSize: cint; inCreateObject: RTTI_pCreateObjectFunction; inDestructObject: RTTI_pDestructObjectFunction; inCreateRTTI: RTTI_pCreateRTTIFunction): RTTI {.importcpp: "JPH::RTTI(@)", constructor, header: joltApiHeader.}
-proc GetName*(self: RTTI): cstring {.importcpp: "#.GetName(@)", noSideEffect, header: joltApiHeader.}
+proc GetName*(self: RTTI): cstring {.importcpp: "joltnim_raw_detail::Mutable(#.GetName(@))", noSideEffect, header: joltApiHeader.}
 proc SetName*(self: var RTTI; inName: cstring) {.importcpp: "#.SetName(@)", header: joltApiHeader.}
 proc GetSize*(self: RTTI): cint {.importcpp: "#.GetSize(@)", noSideEffect, header: joltApiHeader.}
 proc IsAbstract*(self: RTTI): bool {.importcpp: "#.IsAbstract(@)", noSideEffect, header: joltApiHeader.}
@@ -6426,8 +6426,8 @@ proc Execute*(self: var ComputeQueue) {.importcpp: "#.Execute(@)", header: joltA
 proc Wait*(self: var ComputeQueue) {.importcpp: "#.Wait(@)", header: joltApiHeader.}
 proc ExecuteAndWait*(self: var ComputeQueue) {.importcpp: "#.ExecuteAndWait(@)", header: joltApiHeader.}
 
-proc GetRTTI*(self: ComputeSystem): ptr RTTI {.importcpp: "#.GetRTTI(@)", noSideEffect, header: joltApiHeader.}
-proc CastTo*(self: ComputeSystem; inRTTI: ptr RTTI): pointer {.importcpp: "#.CastTo(@)", noSideEffect, header: joltApiHeader.}
+proc GetRTTI*(self: ComputeSystem): ptr RTTI {.importcpp: "joltnim_raw_detail::Mutable(#.GetRTTI(@))", noSideEffect, header: joltApiHeader.}
+proc CastTo*(self: ComputeSystem; inRTTI: ptr RTTI): pointer {.importcpp: "joltnim_raw_detail::Mutable(#.CastTo(@))", noSideEffect, header: joltApiHeader.}
 proc sCreateRTTI*(_: type ComputeSystem; inRTTI: var RTTI) {.importcpp: "JPH::ComputeSystem::sCreateRTTI(@)", header: joltApiHeader.}
 proc CreateComputeShader*(self: var ComputeSystem; inName: cstring; inGroupSizeX: uint32; inGroupSizeY: uint32 = uint32(1); inGroupSizeZ: uint32 = uint32(1)): ComputeShaderResult {.importcpp: "#.CreateComputeShader(@)", header: joltApiHeader.}
 proc CreateComputeBuffer*(self: var ComputeSystem; inType: EType; inSize: uint64; inStride: uint; inData: pointer): ComputeBufferResult {.importcpp: "#.CreateComputeBuffer(@)", header: joltApiHeader.}
@@ -6487,9 +6487,11 @@ proc Wait*(self: var ComputeQueueCPU)
   {.importcpp: "#.Wait()", header: joltApiHeader.}
 
 proc GetRTTI*(self: ComputeSystemCPU): ptr RTTI
-  {.importcpp: "#.GetRTTI()", noSideEffect, header: joltApiHeader.}
+  {.importcpp: "joltnim_raw_detail::Mutable(#.GetRTTI())", noSideEffect,
+    header: joltApiHeader.}
 proc CastTo*(self: ComputeSystemCPU; inRTTI: ptr RTTI): pointer
-  {.importcpp: "#.CastTo(@)", noSideEffect, header: joltApiHeader.}
+  {.importcpp: "joltnim_raw_detail::Mutable(#.CastTo(@))", noSideEffect,
+    header: joltApiHeader.}
 proc sCreateRTTI*(_: type ComputeSystemCPU; inRTTI: var RTTI)
   {.importcpp: "JPH::ComputeSystemCPU::sCreateRTTI(@)", header: joltApiHeader.}
 proc CreateComputeShader*(self: var ComputeSystemCPU; inName: cstring;
@@ -6573,9 +6575,9 @@ proc GetBufferInfos*(self: ComputeShaderVK): ptr VkDescriptorBufferInfos
   {.importcpp: "&( #.GetBufferInfos() )", noSideEffect, header: joltApiHeader.}
 
 proc GetRTTI*(self: ComputeSystemVK): ptr RTTI
-  {.importcpp: "#.GetRTTI()", noSideEffect, header: joltApiHeader.}
+  {.importcpp: "joltnim_raw_detail::Mutable(#.GetRTTI())", noSideEffect, header: joltApiHeader.}
 proc CastTo*(self: ComputeSystemVK; inRTTI: ptr RTTI): pointer
-  {.importcpp: "#.CastTo(@)", noSideEffect, header: joltApiHeader.}
+  {.importcpp: "joltnim_raw_detail::Mutable(#.CastTo(@))", noSideEffect, header: joltApiHeader.}
 proc sCreateRTTI*(_: type ComputeSystemVK; inRTTI: var RTTI)
   {.importcpp: "JPH::ComputeSystemVK::sCreateRTTI(@)", header: joltApiHeader.}
 proc Initialize*(self: var ComputeSystemVK; inPhysicalDevice: VkPhysicalDevice;
@@ -6607,9 +6609,9 @@ proc UnmapBuffer*(self: var ComputeSystemVK; ioBuffer: var BufferVK)
   {.importcpp: "#.UnmapBuffer(@)", header: joltApiHeader.}
 
 proc GetRTTI*(self: ComputeSystemVKWithAllocator): ptr RTTI
-  {.importcpp: "#.GetRTTI()", noSideEffect, header: joltApiHeader.}
+  {.importcpp: "joltnim_raw_detail::Mutable(#.GetRTTI())", noSideEffect, header: joltApiHeader.}
 proc CastTo*(self: ComputeSystemVKWithAllocator; inRTTI: ptr RTTI): pointer
-  {.importcpp: "#.CastTo(@)", noSideEffect, header: joltApiHeader.}
+  {.importcpp: "joltnim_raw_detail::Mutable(#.CastTo(@))", noSideEffect, header: joltApiHeader.}
 proc sCreateRTTI*(_: type ComputeSystemVKWithAllocator; inRTTI: var RTTI)
   {.importcpp: "JPH::ComputeSystemVKWithAllocator::sCreateRTTI(@)", header: joltApiHeader.}
 proc Initialize*(self: var ComputeSystemVKWithAllocator; inInstance: VkInstance;
@@ -6632,9 +6634,9 @@ proc UnmapBuffer*(self: var ComputeSystemVKWithAllocator;
   {.importcpp: "#.UnmapBuffer(@)", header: joltApiHeader.}
 
 proc GetRTTI*(self: ComputeSystemVKImpl): ptr RTTI
-  {.importcpp: "#.GetRTTI()", noSideEffect, header: joltApiHeader.}
+  {.importcpp: "joltnim_raw_detail::Mutable(#.GetRTTI())", noSideEffect, header: joltApiHeader.}
 proc CastTo*(self: ComputeSystemVKImpl; inRTTI: ptr RTTI): pointer
-  {.importcpp: "#.CastTo(@)", noSideEffect, header: joltApiHeader.}
+  {.importcpp: "joltnim_raw_detail::Mutable(#.CastTo(@))", noSideEffect, header: joltApiHeader.}
 proc sCreateRTTI*(_: type ComputeSystemVKImpl; inRTTI: var RTTI)
   {.importcpp: "JPH::ComputeSystemVKImpl::sCreateRTTI(@)", header: joltApiHeader.}
 proc Initialize*(self: var ComputeSystemVKImpl;
@@ -6712,9 +6714,9 @@ proc GetRootSignature*(self: ComputeShaderDX12): ptr ID3D12RootSignature
   {.importcpp: "#.GetRootSignature()", noSideEffect, header: joltApiHeader.}
 
 proc GetRTTI*(self: ComputeSystemDX12): ptr RTTI
-  {.importcpp: "#.GetRTTI()", noSideEffect, header: joltApiHeader.}
+  {.importcpp: "joltnim_raw_detail::Mutable(#.GetRTTI())", noSideEffect, header: joltApiHeader.}
 proc CastTo*(self: ComputeSystemDX12; inRTTI: ptr RTTI): pointer
-  {.importcpp: "#.CastTo(@)", noSideEffect, header: joltApiHeader.}
+  {.importcpp: "joltnim_raw_detail::Mutable(#.CastTo(@))", noSideEffect, header: joltApiHeader.}
 proc sCreateRTTI*(_: type ComputeSystemDX12; inRTTI: var RTTI)
   {.importcpp: "JPH::ComputeSystemDX12::sCreateRTTI(@)", header: joltApiHeader.}
 proc Initialize*(self: var ComputeSystemDX12; inDevice: ptr ID3D12Device;
@@ -6739,9 +6741,9 @@ proc CreateD3DResource*(self: var ComputeSystemDX12;
   {.importcpp: "#.CreateD3DResource(@)", header: joltApiHeader.}
 
 proc GetRTTI*(self: ComputeSystemDX12Impl): ptr RTTI
-  {.importcpp: "#.GetRTTI()", noSideEffect, header: joltApiHeader.}
+  {.importcpp: "joltnim_raw_detail::Mutable(#.GetRTTI())", noSideEffect, header: joltApiHeader.}
 proc CastTo*(self: ComputeSystemDX12Impl; inRTTI: ptr RTTI): pointer
-  {.importcpp: "#.CastTo(@)", noSideEffect, header: joltApiHeader.}
+  {.importcpp: "joltnim_raw_detail::Mutable(#.CastTo(@))", noSideEffect, header: joltApiHeader.}
 proc sCreateRTTI*(_: type ComputeSystemDX12Impl; inRTTI: var RTTI)
   {.importcpp: "JPH::ComputeSystemDX12Impl::sCreateRTTI(@)", header: joltApiHeader.}
 proc Initialize*(self: var ComputeSystemDX12Impl;
@@ -6800,9 +6802,9 @@ proc NameToBindingIndex*(self: ComputeShaderMTL; inName: cstring): uint
   {.importcpp: "#.NameToBindingIndex(@)", noSideEffect, header: joltApiHeader.}
 
 proc GetRTTI*(self: ComputeSystemMTL): ptr RTTI
-  {.importcpp: "#.GetRTTI()", noSideEffect, header: joltApiHeader.}
+  {.importcpp: "joltnim_raw_detail::Mutable(#.GetRTTI())", noSideEffect, header: joltApiHeader.}
 proc CastTo*(self: ComputeSystemMTL; inRTTI: ptr RTTI): pointer
-  {.importcpp: "#.CastTo(@)", noSideEffect, header: joltApiHeader.}
+  {.importcpp: "joltnim_raw_detail::Mutable(#.CastTo(@))", noSideEffect, header: joltApiHeader.}
 proc sCreateRTTI*(_: type ComputeSystemMTL; inRTTI: var RTTI)
   {.importcpp: "JPH::ComputeSystemMTL::sCreateRTTI(@)", header: joltApiHeader.}
 proc Initialize*(self: var ComputeSystemMTL; inDevice: MTLDeviceRef): bool
@@ -6822,9 +6824,9 @@ proc GetDevice*(self: ComputeSystemMTL): MTLDeviceRef
   {.importcpp: "#.GetDevice()", noSideEffect, header: joltApiHeader.}
 
 proc GetRTTI*(self: ComputeSystemMTLImpl): ptr RTTI
-  {.importcpp: "#.GetRTTI()", noSideEffect, header: joltApiHeader.}
+  {.importcpp: "joltnim_raw_detail::Mutable(#.GetRTTI())", noSideEffect, header: joltApiHeader.}
 proc CastTo*(self: ComputeSystemMTLImpl; inRTTI: ptr RTTI): pointer
-  {.importcpp: "#.CastTo(@)", noSideEffect, header: joltApiHeader.}
+  {.importcpp: "joltnim_raw_detail::Mutable(#.CastTo(@))", noSideEffect, header: joltApiHeader.}
 proc sCreateRTTI*(_: type ComputeSystemMTLImpl; inRTTI: var RTTI)
   {.importcpp: "JPH::ComputeSystemMTLImpl::sCreateRTTI(@)", header: joltApiHeader.}
 proc Initialize*(self: var ComputeSystemMTLImpl): bool
@@ -7625,7 +7627,7 @@ proc AddAttribute*(self: var RTTI; inAttribute: SerializableAttribute)
 proc GetAttributeCount*(self: RTTI): cint
   {.importcpp: "#.GetAttributeCount()", noSideEffect, header: joltApiHeader.}
 proc GetAttribute*(self: RTTI; inIndex: cint): ptr SerializableAttribute
-  {.importcpp: "&(#.GetAttribute(@))", noSideEffect, header: joltApiHeader.}
+  {.importcpp: "joltnim_raw_detail::Mutable(&(#.GetAttribute(@)))", noSideEffect, header: joltApiHeader.}
 
 proc constructSemaphore*(): Semaphore
   {.importcpp: "JPH::Semaphore()", constructor, header: joltApiHeader.}
@@ -7790,7 +7792,7 @@ type
                       header: joltApiHeader.} = object
   TriangleSplitter_Stats* {.importcpp: "JPH::TriangleSplitter::Stats",
                             header: joltApiHeader.} = object
-    mSplitterName*: cstring
+    mSplitterName: cstring
     mLeafSize*: cint
   TriangleSplitter_Range* {.importcpp: "JPH::TriangleSplitter::Range",
                             header: joltApiHeader.} = object
@@ -7963,7 +7965,10 @@ type
     Indeterminate = 2
 
 proc GetConfigurationString*(_: type JoltApi): cstring
-  {.importcpp: "JPH::GetConfigurationString()", noSideEffect,
+  {.importcpp: "joltnim_raw_detail::Mutable(JPH::GetConfigurationString())", noSideEffect,
+    header: joltApiHeader.}
+proc GetSplitterName*(self: TriangleSplitter_Stats): cstring
+  {.importcpp: "joltnim_raw_detail::Mutable(#.mSplitterName)", noSideEffect,
     header: joltApiHeader.}
 proc PrefetchL1*[T](_: type JoltApi; inAddress: ptr T)
   {.importcpp: "JPH::PrefetchL1(@)", header: joltApiHeader.}
@@ -8138,7 +8143,8 @@ proc DetermineMaxError*(self: ConvexHullBuilder;
   {.importcpp: "#.DetermineMaxError(@)", noSideEffect,
     header: joltApiHeader.}
 proc GetFaces*(self: ConvexHullBuilder): ptr ConvexHullBuilder_Faces
-  {.importcpp: "&(#.GetFaces())", noSideEffect, header: joltApiHeader.}
+  {.importcpp: "joltnim_raw_detail::Mutable(&(#.GetFaces()))", noSideEffect,
+    header: joltApiHeader.}
 
 proc constructConvexHullBuilder_Edge*(inFace: ptr ConvexHullBuilder_Face;
                                       inStartIdx: cint): ConvexHullBuilder_Edge
@@ -8164,7 +8170,8 @@ proc Build*(self: var AABBTreeBuilder;
             outStats: var AABBTreeBuilderStats): ptr AABBTreeBuilder_Node
   {.importcpp: "#.Build(@)", header: joltApiHeader.}
 proc GetNodes*(self: AABBTreeBuilder): ptr AABBTreeBuilder_Nodes
-  {.importcpp: "&(#.GetNodes())", noSideEffect, header: joltApiHeader.}
+  {.importcpp: "joltnim_raw_detail::Mutable(&(#.GetNodes()))", noSideEffect,
+    header: joltApiHeader.}
 proc GetTriangles*(self: AABBTreeBuilder): ptr IndexedTriangleList
   {.importcpp: "&(#.GetTriangles())", noSideEffect, header: joltApiHeader.}
 
@@ -8174,7 +8181,8 @@ proc HasChildren*(self: AABBTreeBuilder_Node): bool
   {.importcpp: "#.HasChildren()", noSideEffect, header: joltApiHeader.}
 proc GetChild*(self: AABBTreeBuilder_Node; inIdx: uint;
                inNodes: var AABBTreeBuilder_Nodes): ptr AABBTreeBuilder_Node
-  {.importcpp: "#.GetChild(@)", noSideEffect, header: joltApiHeader.}
+  {.importcpp: "joltnim_raw_detail::Mutable(#.GetChild(@))", noSideEffect,
+    header: joltApiHeader.}
 proc GetMinDepth*(self: AABBTreeBuilder_Node;
                   inNodes: var AABBTreeBuilder_Nodes): uint
   {.importcpp: "#.GetMinDepth(@)", noSideEffect, header: joltApiHeader.}
@@ -8228,7 +8236,8 @@ proc IsFacingOrigin*(self: EPAConvexHullBuilder_Triangle): bool
   {.importcpp: "#.IsFacingOrigin()", noSideEffect, header: joltApiHeader.}
 proc GetNextEdge*(self: EPAConvexHullBuilder_Triangle;
                   inIndex: cint): ptr EPAConvexHullBuilder_Edge
-  {.importcpp: "&(#.GetNextEdge(@))", noSideEffect, header: joltApiHeader.}
+  {.importcpp: "joltnim_raw_detail::Mutable(&(#.GetNextEdge(@)))", noSideEffect,
+    header: joltApiHeader.}
 
 proc constructEPAConvexHullBuilder_TriangleFactory*():
     EPAConvexHullBuilder_TriangleFactory
@@ -8298,14 +8307,17 @@ proc FreeTriangle*(self: var EPAConvexHullBuilder;
 proc GetVertexData*(self:
     TriangleCodecIndexed8BitPackSOA4Flags_TriangleBlockHeader):
     ptr TriangleCodecIndexed8BitPackSOA4Flags_VertexData
-  {.importcpp: "#.GetVertexData()", noSideEffect, header: joltApiHeader.}
+  {.importcpp: "joltnim_raw_detail::Mutable(#.GetVertexData())", noSideEffect,
+    header: joltApiHeader.}
 proc GetTriangleBlock*(self:
     TriangleCodecIndexed8BitPackSOA4Flags_TriangleBlockHeader):
     ptr TriangleCodecIndexed8BitPackSOA4Flags_TriangleBlock
-  {.importcpp: "#.GetTriangleBlock()", noSideEffect, header: joltApiHeader.}
+  {.importcpp: "joltnim_raw_detail::Mutable(#.GetTriangleBlock())", noSideEffect,
+    header: joltApiHeader.}
 proc GetUserData*(self:
     TriangleCodecIndexed8BitPackSOA4Flags_TriangleBlockHeader): ptr uint32
-  {.importcpp: "#.GetUserData()", noSideEffect, header: joltApiHeader.}
+  {.importcpp: "joltnim_raw_detail::Mutable(#.GetUserData())", noSideEffect,
+    header: joltApiHeader.}
 
 proc constructTriangleCodecValidationContext*(inTriangles:
     var IndexedTriangleList; inVertices: var VertexList):
@@ -8414,7 +8426,7 @@ proc sTriangleBlockIDBits*(_: type NodeCodecQuadTreeHalfFloat_DecodingContext;
 proc sGetTriangleBlockStart*(_:
     type NodeCodecQuadTreeHalfFloat_DecodingContext;
     inBufferStart: ptr uint8; inTriangleBlockID: uint): pointer
-  {.importcpp: "JPH::NodeCodecQuadTreeHalfFloat::DecodingContext::sGetTriangleBlockStart(@)",
+  {.importcpp: "joltnim_raw_detail::Mutable(JPH::NodeCodecQuadTreeHalfFloat::DecodingContext::sGetTriangleBlockStart(@))",
     noSideEffect, header: joltApiHeader.}
 proc WalkTree*[TriangleContext, Visitor](self:
     var NodeCodecQuadTreeHalfFloat_DecodingContext;
@@ -8436,12 +8448,15 @@ proc GetBuffer*(self: var AABBTreeToBufferDefault): ptr ByteBuffer
   {.importcpp: "&(#.GetBuffer())", header: joltApiHeader.}
 proc GetNodeHeader*(self: AABBTreeToBufferDefault):
     ptr NodeCodecQuadTreeHalfFloat_Header
-  {.importcpp: "#.GetNodeHeader()", noSideEffect, header: joltApiHeader.}
+  {.importcpp: "joltnim_raw_detail::Mutable(#.GetNodeHeader())", noSideEffect,
+    header: joltApiHeader.}
 proc GetTriangleHeader*(self: AABBTreeToBufferDefault):
     ptr TriangleCodecIndexed8BitPackSOA4Flags_TriangleHeader
-  {.importcpp: "#.GetTriangleHeader()", noSideEffect, header: joltApiHeader.}
+  {.importcpp: "joltnim_raw_detail::Mutable(#.GetTriangleHeader())", noSideEffect,
+    header: joltApiHeader.}
 proc GetRoot*(self: AABBTreeToBufferDefault): pointer
-  {.importcpp: "#.GetRoot()", noSideEffect, header: joltApiHeader.}
+  {.importcpp: "joltnim_raw_detail::Mutable(#.GetRoot())", noSideEffect,
+    header: joltApiHeader.}
 
 proc GetSupport*(self: PointConvexSupport; inDirection: Vec3Arg): Vec3
   {.importcpp: "#.GetSupport(@)", noSideEffect, header: joltApiHeader.}
@@ -8950,14 +8965,15 @@ proc constructSerializableAttribute*(inOther: SerializableAttribute;
 proc SetName*(self: var SerializableAttribute; inName: cstring)
   {.importcpp: "#.SetName(@)", header: joltApiHeader.}
 proc GetName*(self: SerializableAttribute): cstring
-  {.importcpp: "#.GetName()", noSideEffect, header: joltApiHeader.}
+  {.importcpp: "joltnim_raw_detail::Mutable(#.GetName())", noSideEffect,
+    header: joltApiHeader.}
 proc GetMemberPointer*[T](self: SerializableAttribute;
                           inObject: pointer;
                           typeArg0: typedesc[T]): ptr T
   {.importcpp: "#.GetMemberPointer<'*3>(@)", noSideEffect,
     header: joltApiHeader.}
 proc GetMemberPrimitiveType*(self: SerializableAttribute): ptr RTTI
-  {.importcpp: "#.GetMemberPrimitiveType()", noSideEffect,
+  {.importcpp: "joltnim_raw_detail::Mutable(#.GetMemberPrimitiveType())", noSideEffect,
     header: joltApiHeader.}
 proc IsType*(self: SerializableAttribute; inArrayDepth: cint;
              inDataType: EOSDataType; inClassName: cstring): bool
@@ -8973,7 +8989,7 @@ proc WriteDataType*(self: SerializableAttribute;
   {.importcpp: "#.WriteDataType(@)", noSideEffect, header: joltApiHeader.}
 
 proc GetPrimitiveTypeOfType*[T](_: type JoltApi; inType: ptr T): ptr RTTI
-  {.importcpp: "JPH::GetPrimitiveTypeOfType(@)", noSideEffect,
+  {.importcpp: "joltnim_raw_detail::Mutable(JPH::GetPrimitiveTypeOfType(@))", noSideEffect,
     header: joltApiHeader.}
 proc OSIsType*[T](_: type JoltApi; inType: ptr T; inArrayDepth: cint;
                   inDataType: EOSDataType; inClassName: cstring): bool

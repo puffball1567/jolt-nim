@@ -155,7 +155,7 @@ proc main() =
   var splitter = api.constructTriangleSplitterMean(vertices, indexedTriangles)
   var splitterStats: api.TriangleSplitter_Stats
   splitter.GetStats(splitterStats)
-  doAssert splitterStats.mSplitterName != nil
+  doAssert splitterStats.GetSplitterName() != nil
   var initialRange = splitter.GetInitialRange()
   doAssert initialRange.Count() == 1
 

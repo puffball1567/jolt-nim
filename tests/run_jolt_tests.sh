@@ -44,7 +44,6 @@ run_test() {
     --passC:-pthread \
     --passL:"$jolt_library" \
     --passL:-pthread \
-    --passL:-flto \
     "$test_source"
 }
 
