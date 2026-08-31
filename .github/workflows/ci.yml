@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  native-tests:
+    name: ${{ matrix.os }} / Nim 2.2
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-22.04
+          - macos-15-intel
+          - windows-2022
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Nim
+        uses: jiro4989/setup-nim-action@v2
+        with:
+          nim-version: 2.2.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Fetch Jolt Physics 5.6.0
+        shell: bash
+        run: git clone --branch v5.6.0 --depth 1 https://github.com/jrouwe/JoltPhysics.git _deps/Jolt
+
+      - name: Configure Jolt Physics
+        shell: bash
+        run: >-
+          cmake -S _deps/Jolt/Build -B _deps/jolt-build -G Ninja
+          -DCMAKE_BUILD_TYPE=Distribution
+          -DCMAKE_CXX_COMPILER=g++
+          -DTARGET_UNIT_TESTS=OFF
+          -DTARGET_HELLO_WORLD=OFF
+          -DTARGET_PERFORMANCE_TEST=OFF
+          -DTARGET_SAMPLES=OFF
+          -DTARGET_VIEWER=OFF
+          -DINTERPROCEDURAL_OPTIMIZATION=ON
+
+      - name: Build Jolt Physics
+        shell: bash
+        run: cmake --build _deps/jolt-build --target Jolt --parallel 2
+
+      - name: Run native binding tests
+        shell: bash
+        run: tests/run_jolt_tests.sh _deps/Jolt _deps/jolt-build/libJolt.a
