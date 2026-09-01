@@ -2,6 +2,14 @@
 
 All notable changes to joltnim are documented in this file.
 
+## 0.1.1 - 2026-09-01
+
+### Fixed
+
+- Corrected const-qualified C++ bridge declarations for Clang compatibility.
+- Stabilized native test linking and execution with MinGW on Windows.
+- Consolidated the native test runner while retaining raw API coverage.
+
 ## 0.1.0 - 2026-08-31
 
 Initial public release targeting Jolt Physics 5.6.0.
