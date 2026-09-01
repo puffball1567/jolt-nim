@@ -49,7 +49,12 @@ run_test() {
     --passL:"$jolt_library" \
     --passL:-pthread \
     "$test_source"
-  "$test_binary"
+  if ! "$test_binary"; then
+    case "$(uname -s)" in
+      MINGW*|MSYS*|CYGWIN*) ldd "$test_binary" || true ;;
+    esac
+    return 1
+  fi
 }
 
 if [ "$#" -eq 0 ]; then
