@@ -18,9 +18,10 @@ run_test() {
   test_source=$1
   test_name=${test_source##*/}
   test_name=${test_name%.nim}
-  nim cpp -r --path:src \
+  test_binary="$nim_cache/$test_name"
+  nim cpp --path:src \
     --nimcache:"$nim_cache" \
-    --out:"$nim_cache/$test_name" \
+    --out:"$test_binary" \
     --passC:"-I$jolt_source" \
     --passC:-std=c++17 \
     --passC:-DNDEBUG \
@@ -45,6 +46,7 @@ run_test() {
     --passL:"$jolt_library" \
     --passL:-pthread \
     "$test_source"
+  "$test_binary"
 }
 
 if [ "$#" -eq 0 ]; then
