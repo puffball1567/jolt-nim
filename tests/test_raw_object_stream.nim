@@ -1,5 +1,9 @@
 import jolt/raw as api
 
+proc reportPhase(message: string) =
+  echo message
+  flushFile(stdout)
+
 proc writeTokens[T](writer: var T) =
   var value8 = 7'u8
   var value16 = 1_023'u16
@@ -146,6 +150,7 @@ proc readTokens[T](reader: var T) =
   doAssert valueDMat44 == api.sIdentity(api.DMat44)
 
 proc main() =
+  reportPhase("raw ObjectStream: register types")
   api.RegisterDefaultAllocator(api.JoltApi)
   api.joltFactoryInstance = api.newJoltFactory()
   api.RegisterTypes(api.JoltApi)
@@ -212,6 +217,7 @@ proc main() =
     api.EOSDataType.T_uint32,
     "",
   )
+  reportPhase("raw ObjectStream: reflection")
 
   block:
     var stream = api.constructStdStringStream()
@@ -226,6 +232,7 @@ proc main() =
     doAssert not reader.IsEOF()
     doAssert not reader.IsFailed()
     doAssert bytesIn == bytesOut
+  reportPhase("raw ObjectStream: stream wrapper")
 
   block:
     var buffer = api.constructStdStringStream()
@@ -242,6 +249,7 @@ proc main() =
     doAssert dataType == api.EOSDataType.T_uint32
     doAssert api.OSReadData(api.JoltApi, readerBase[], readValue)
     doAssert readValue == primitiveValue
+  reportPhase("raw ObjectStream: generic text")
 
   block:
     var buffer = api.constructStdStringStream()
@@ -252,6 +260,7 @@ proc main() =
     buffer.rewindForRead()
     var reader = api.constructObjectStreamTextIn(buffer)
     readTokens(reader)
+  reportPhase("raw ObjectStream: text tokens")
 
   block:
     var buffer = api.constructStdStringStream()
@@ -260,10 +269,12 @@ proc main() =
     buffer.rewindForRead()
     var reader = api.constructObjectStreamBinaryIn(buffer)
     readTokens(reader)
+  reportPhase("raw ObjectStream: binary tokens")
 
   api.UnregisterTypes(api.JoltApi)
   api.deleteJoltFactory(api.joltFactoryInstance)
   api.joltFactoryInstance = nil
+  reportPhase("raw ObjectStream: complete")
 
 when isMainModule:
   main()

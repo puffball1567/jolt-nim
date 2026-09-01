@@ -286,7 +286,7 @@ inline bool GetBodyMaterial(
     const JPH::PhysicsSystem *inSystem,
     JPH::BodyID inBodyID,
     std::uint32_t inSubShapeID,
-    const char **outName,
+    char **outName,
     std::uint8_t *outRed,
     std::uint8_t *outGreen,
     std::uint8_t *outBlue,
@@ -303,7 +303,7 @@ inline bool GetBodyMaterial(
         material == JPH::PhysicsMaterial::sDefault.GetPtr())
         return false;
     const JPH::Color color = material->GetDebugColor();
-    *outName = material->GetDebugName();
+    *outName = const_cast<char *>(material->GetDebugName());
     *outRed = color.r;
     *outGreen = color.g;
     *outBlue = color.b;

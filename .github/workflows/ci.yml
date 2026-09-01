@@ -2,6 +2,10 @@ name: CI
 
 on:
   push:
+    branches:
+      - main
+    tags:
+      - "v*"
   pull_request:
 
 permissions:
@@ -11,7 +15,7 @@ jobs:
   native-tests:
     name: ${{ matrix.os }} / Nim 2.2
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 30
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
@@ -44,7 +48,11 @@ jobs:
           -DTARGET_PERFORMANCE_TEST=OFF
           -DTARGET_SAMPLES=OFF
           -DTARGET_VIEWER=OFF
-          -DINTERPROCEDURAL_OPTIMIZATION=ON
+          -DJPH_USE_DX12=OFF
+          -DJPH_USE_VK=OFF
+          -DJPH_USE_MTL=OFF
+          -DJPH_USE_CPU_COMPUTE=ON
+          -DINTERPROCEDURAL_OPTIMIZATION=OFF
 
       - name: Build Jolt Physics
         shell: bash

@@ -172,7 +172,7 @@ proc delete*(self: ptr ObjectVsBroadPhaseLayerFilterTable) {.importcpp: "delete 
 proc newPhysicsSystem*(): ptr PhysicsSystem {.importcpp: "new JPH::PhysicsSystem()", header: joltBindingsHeader.}
 proc delete*(self: ptr PhysicsSystem) {.importcpp: "delete #", header: joltBindingsHeader.}
 proc constructPhysicsSettings*(): PhysicsSettings {.importcpp: "JPH::PhysicsSettings()", constructor, header: joltBindingsHeader.}
-proc GetPhysicsSettings*(self: ptr PhysicsSystem): ptr PhysicsSettings {.importcpp: "&(#->GetPhysicsSettings())", noSideEffect, header: joltBindingsHeader.}
+proc GetPhysicsSettings*(self: ptr PhysicsSystem): ptr PhysicsSettings {.importcpp: "const_cast<JPH::PhysicsSettings *>(&(#->GetPhysicsSettings()))", noSideEffect, header: joltBindingsHeader.}
 proc SetPhysicsSettings*(self: ptr PhysicsSystem; settings: PhysicsSettings) {.importcpp: "#->SetPhysicsSettings(@)", header: joltBindingsHeader.}
 proc init*(self: ptr PhysicsSystem; maxBodies, numBodyMutexes, maxBodyPairs, maxContactConstraints: uint; broadPhaseInterface: ptr BroadPhaseLayerInterfaceTable; objectVsBroadPhaseFilter: ptr ObjectVsBroadPhaseLayerFilterTable; objectPairFilter: ptr ObjectLayerPairFilterTable) {.importcpp: "joltnim_detail::InitializePhysicsSystem(@)", header: joltBindingsHeader.}
 proc bodyInterface*(self: ptr PhysicsSystem): ptr BodyInterface {.importcpp: "joltnim_detail::GetBodyInterface(@)", noSideEffect, header: joltBindingsHeader.}

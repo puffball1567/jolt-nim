@@ -145,16 +145,14 @@
 #include <Jolt/Geometry/RayCylinder.h>
 #include <Jolt/Geometry/RaySphere.h>
 #include <Jolt/Geometry/RayTriangle.h>
-#include <Jolt/ObjectStream/GetPrimitiveTypeOfType.h>
 #include <Jolt/ObjectStream/ObjectStreamBinaryIn.h>
 #include <Jolt/ObjectStream/ObjectStreamBinaryOut.h>
 #include <Jolt/ObjectStream/ObjectStreamIn.h>
 #include <Jolt/ObjectStream/ObjectStreamOut.h>
 #include <Jolt/ObjectStream/ObjectStreamTextIn.h>
 #include <Jolt/ObjectStream/ObjectStreamTextOut.h>
-#include <Jolt/ObjectStream/SerializableAttributeEnum.h>
-#include <Jolt/ObjectStream/SerializableAttributeTyped.h>
 #include <Jolt/ObjectStream/TypeDeclarations.h>
+#include <Jolt/ObjectStream/GetPrimitiveTypeOfType.h>
 #include <Jolt/AABBTree/AABBTreeBuilder.h>
 #include <Jolt/AABBTree/AABBTreeToBuffer.h>
 #include <Jolt/AABBTree/NodeCodec/NodeCodecQuadTreeHalfFloat.h>
@@ -298,46 +296,52 @@ constexpr RestoreBinaryStateMember<T> GetRestoreBinaryStateMember()
 
 using JobCallback = void (*)(void *);
 using ThreadInitExitCallback = void (*)(void *, int);
-using SimCollideCallback = void (*)(void *, const JPH::Body *, const JPH::Body *, const JPH::Mat44 *, const JPH::Mat44 *, JPH::CollideShapeSettings *, JPH::CollideShapeCollector *, const JPH::ShapeFilter *);
-using ShaderLoaderCallback = bool (*)(void *, const char *, JPH::Array<JPH::uint8> *, JPH::String *);
+using SimCollideCallback = void (*)(void *, JPH::Body *, JPH::Body *, JPH::Mat44 *, JPH::Mat44 *, JPH::CollideShapeSettings *, JPH::CollideShapeCollector *, JPH::ShapeFilter *);
+using ShaderLoaderCallback = bool (*)(void *, char *, JPH::Array<JPH::uint8> *, JPH::String *);
 using HairRenderCallback = void (*)(void *, JPH::ComputeBuffer *, JPH::Float3 *, JPH::uint);
-using VehicleCombineCallback = void (*)(void *, JPH::uint, float *, float *, const JPH::Body *, const JPH::SubShapeID *);
-using VehicleStepCallback = void (*)(void *, JPH::VehicleConstraint *, const JPH::PhysicsStepListenerContext *);
+using VehicleCombineCallback = void (*)(void *, JPH::uint, float *, float *, JPH::Body *, JPH::SubShapeID *);
+using VehicleStepCallback = void (*)(void *, JPH::VehicleConstraint *, JPH::PhysicsStepListenerContext *);
 using TireMaxImpulseCallback = void (*)(void *, JPH::uint, float *, float *, float, float, float, float, float, float);
-using BodyActivationCallback = void (*)(void *, const JPH::BodyID *, JPH::uint64);
-using PhysicsStepCallback = void (*)(void *, const JPH::PhysicsStepListenerContext *);
-using ContactValidateCallback = JPH::ValidateResult (*)(void *, const JPH::Body *, const JPH::Body *, const JPH::RVec3 *, const JPH::CollideShapeResult *);
-using ContactCallback = void (*)(void *, const JPH::Body *, const JPH::Body *, const JPH::ContactManifold *, JPH::ContactSettings *);
-using ContactRemovedCallback = void (*)(void *, const JPH::SubShapeIDPair *);
-using SoftBodyValidateCallback = JPH::SoftBodyValidateResult (*)(void *, const JPH::Body *, const JPH::Body *, JPH::SoftBodyContactSettings *);
-using SoftBodyContactAddedCallback = void (*)(void *, const JPH::Body *, const JPH::SoftBodyManifold *);
-using SimShapeCallback = bool (*)(void *, const JPH::Body *, const JPH::Shape *, const JPH::SubShapeID *, const JPH::Body *, const JPH::Shape *, const JPH::SubShapeID *);
-using ContactCombineCallback = float (*)(void *, const JPH::Body *, const JPH::SubShapeID *, const JPH::Body *, const JPH::SubShapeID *);
-using BroadPhaseLayerFilterCallback = bool (*)(void *, const JPH::BroadPhaseLayer *);
+using BodyActivationCallback = void (*)(void *, JPH::BodyID *, JPH::uint64);
+using PhysicsStepCallback = void (*)(void *, JPH::PhysicsStepListenerContext *);
+using ContactValidateCallback = JPH::ValidateResult (*)(void *, JPH::Body *, JPH::Body *, JPH::RVec3 *, JPH::CollideShapeResult *);
+using ContactCallback = void (*)(void *, JPH::Body *, JPH::Body *, JPH::ContactManifold *, JPH::ContactSettings *);
+using ContactRemovedCallback = void (*)(void *, JPH::SubShapeIDPair *);
+using SoftBodyValidateCallback = JPH::SoftBodyValidateResult (*)(void *, JPH::Body *, JPH::Body *, JPH::SoftBodyContactSettings *);
+using SoftBodyContactAddedCallback = void (*)(void *, JPH::Body *, JPH::SoftBodyManifold *);
+using SimShapeCallback = bool (*)(void *, JPH::Body *, JPH::Shape *, JPH::SubShapeID *, JPH::Body *, JPH::Shape *, JPH::SubShapeID *);
+using ContactCombineCallback = float (*)(void *, JPH::Body *, JPH::SubShapeID *, JPH::Body *, JPH::SubShapeID *);
+using BroadPhaseLayerFilterCallback = bool (*)(void *, JPH::BroadPhaseLayer *);
 using ObjectLayerFilterCallback = bool (*)(void *, JPH::ObjectLayer);
 using ObjectLayerPairFilterCallback = bool (*)(void *, JPH::ObjectLayer, JPH::ObjectLayer);
-using ObjectVsBroadPhaseLayerFilterCallback = bool (*)(void *, JPH::ObjectLayer, const JPH::BroadPhaseLayer *);
-using BodyIDFilterCallback = bool (*)(void *, const JPH::BodyID *);
-using BodyFilterLockedCallback = bool (*)(void *, const JPH::Body *);
-using ShapeFilterSingleCallback = bool (*)(void *, const JPH::Shape *, const JPH::SubShapeID *);
-using ShapeFilterPairCallback = bool (*)(void *, const JPH::Shape *, const JPH::SubShapeID *, const JPH::Shape *, const JPH::SubShapeID *);
-using StateRecorderBodyCallback = bool (*)(void *, const JPH::Body *);
-using StateRecorderConstraintCallback = bool (*)(void *, const JPH::Constraint *);
-using StateRecorderContactCallback = bool (*)(void *, const JPH::BodyID *, const JPH::BodyID *);
+using ObjectVsBroadPhaseLayerFilterCallback = bool (*)(void *, JPH::ObjectLayer, JPH::BroadPhaseLayer *);
+using BodyIDFilterCallback = bool (*)(void *, JPH::BodyID *);
+using BodyFilterLockedCallback = bool (*)(void *, JPH::Body *);
+using ShapeFilterSingleCallback = bool (*)(void *, JPH::Shape *, JPH::SubShapeID *);
+using ShapeFilterPairCallback = bool (*)(void *, JPH::Shape *, JPH::SubShapeID *, JPH::Shape *, JPH::SubShapeID *);
+using StateRecorderBodyCallback = bool (*)(void *, JPH::Body *);
+using StateRecorderConstraintCallback = bool (*)(void *, JPH::Constraint *);
+using StateRecorderContactCallback = bool (*)(void *, JPH::BodyID *, JPH::BodyID *);
 using BroadPhaseLayerCountCallback = JPH::uint (*)(void *);
 using BroadPhaseLayerMapCallback = JPH::uint8 (*)(void *, JPH::ObjectLayer);
-using BroadPhaseLayerNameCallback = const char *(*)(void *, const JPH::BroadPhaseLayer *);
-using CharacterAdjustVelocityCallback = void (*)(void *, const JPH::CharacterVirtual *, const JPH::Body *, JPH::Vec3 *, JPH::Vec3 *);
-using CharacterContactValidateCallback = bool (*)(void *, const JPH::CharacterVirtual *, const JPH::CharacterContact *);
-using CharacterContactCallback = void (*)(void *, const JPH::CharacterVirtual *, const JPH::CharacterContact *, JPH::CharacterContactSettings *);
-using CharacterContactRemovedCallback = void (*)(void *, const JPH::CharacterVirtual *, const JPH::BodyID *, const JPH::SubShapeID *);
-using CharacterCharacterRemovedCallback = void (*)(void *, const JPH::CharacterVirtual *, const JPH::CharacterID *, const JPH::SubShapeID *);
-using CharacterBodySolveCallback = void (*)(void *, const JPH::CharacterVirtual *, const JPH::BodyID *, const JPH::SubShapeID *, const JPH::RVec3 *, const JPH::Vec3 *, const JPH::Vec3 *, const JPH::PhysicsMaterial *, const JPH::Vec3 *, JPH::Vec3 *);
-using CharacterCharacterSolveCallback = void (*)(void *, const JPH::CharacterVirtual *, const JPH::CharacterVirtual *, const JPH::SubShapeID *, const JPH::RVec3 *, const JPH::Vec3 *, const JPH::Vec3 *, const JPH::PhysicsMaterial *, const JPH::Vec3 *, JPH::Vec3 *);
-using CharacterCollideCallback = void (*)(void *, const JPH::CharacterVirtual *, const JPH::RMat44 *, const JPH::CollideShapeSettings *, const JPH::RVec3 *, JPH::CollideShapeCollector *);
-using CharacterCastCallback = void (*)(void *, const JPH::CharacterVirtual *, const JPH::RMat44 *, const JPH::Vec3 *, const JPH::ShapeCastSettings *, const JPH::RVec3 *, JPH::CastShapeCollector *);
-using VehicleCollideCallback = bool (*)(void *, JPH::PhysicsSystem *, const JPH::VehicleConstraint *, JPH::uint, const JPH::RVec3 *, const JPH::Vec3 *, const JPH::BodyID *, JPH::Body **, JPH::SubShapeID *, JPH::RVec3 *, JPH::Vec3 *, float *);
-using VehiclePredictCallback = void (*)(void *, JPH::PhysicsSystem *, const JPH::VehicleConstraint *, JPH::uint, const JPH::RVec3 *, const JPH::Vec3 *, const JPH::BodyID *, JPH::Body **, JPH::SubShapeID *, JPH::RVec3 *, JPH::Vec3 *, float *);
+using BroadPhaseLayerNameCallback = char *(*)(void *, JPH::BroadPhaseLayer *);
+using CharacterAdjustVelocityCallback = void (*)(void *, JPH::CharacterVirtual *, JPH::Body *, JPH::Vec3 *, JPH::Vec3 *);
+using CharacterContactValidateCallback = bool (*)(void *, JPH::CharacterVirtual *, JPH::CharacterContact *);
+using CharacterContactCallback = void (*)(void *, JPH::CharacterVirtual *, JPH::CharacterContact *, JPH::CharacterContactSettings *);
+using CharacterContactRemovedCallback = void (*)(void *, JPH::CharacterVirtual *, JPH::BodyID *, JPH::SubShapeID *);
+using CharacterCharacterRemovedCallback = void (*)(void *, JPH::CharacterVirtual *, JPH::CharacterID *, JPH::SubShapeID *);
+using CharacterBodySolveCallback = void (*)(void *, JPH::CharacterVirtual *, JPH::BodyID *, JPH::SubShapeID *, JPH::RVec3 *, JPH::Vec3 *, JPH::Vec3 *, JPH::PhysicsMaterial *, JPH::Vec3 *, JPH::Vec3 *);
+using CharacterCharacterSolveCallback = void (*)(void *, JPH::CharacterVirtual *, JPH::CharacterVirtual *, JPH::SubShapeID *, JPH::RVec3 *, JPH::Vec3 *, JPH::Vec3 *, JPH::PhysicsMaterial *, JPH::Vec3 *, JPH::Vec3 *);
+using CharacterCollideCallback = void (*)(void *, JPH::CharacterVirtual *, JPH::RMat44 *, JPH::CollideShapeSettings *, JPH::RVec3 *, JPH::CollideShapeCollector *);
+using CharacterCastCallback = void (*)(void *, JPH::CharacterVirtual *, JPH::RMat44 *, JPH::Vec3 *, JPH::ShapeCastSettings *, JPH::RVec3 *, JPH::CastShapeCollector *);
+using VehicleCollideCallback = bool (*)(void *, JPH::PhysicsSystem *, JPH::VehicleConstraint *, JPH::uint, JPH::RVec3 *, JPH::Vec3 *, JPH::BodyID *, JPH::Body **, JPH::SubShapeID *, JPH::RVec3 *, JPH::Vec3 *, float *);
+using VehiclePredictCallback = void (*)(void *, JPH::PhysicsSystem *, JPH::VehicleConstraint *, JPH::uint, JPH::RVec3 *, JPH::Vec3 *, JPH::BodyID *, JPH::Body **, JPH::SubShapeID *, JPH::RVec3 *, JPH::Vec3 *, float *);
+
+template <class T>
+inline T *Mutable(const T *inValue)
+{
+    return const_cast<T *>(inValue);
+}
 
 struct ContactCombineSlot
 {
@@ -352,7 +356,7 @@ template <size_t Slot>
 inline float ContactCombineThunk(const JPH::Body &inBody1, const JPH::SubShapeID &inSubShapeID1, const JPH::Body &inBody2, const JPH::SubShapeID &inSubShapeID2)
 {
     ContactCombineCallback callback = gContactCombineSlots[Slot].mCallback.load(std::memory_order_acquire);
-    return callback(gContactCombineSlots[Slot].mUserData.load(std::memory_order_relaxed), &inBody1, &inSubShapeID1, &inBody2, &inSubShapeID2);
+    return callback(gContactCombineSlots[Slot].mUserData.load(std::memory_order_relaxed), Mutable(&inBody1), Mutable(&inSubShapeID1), Mutable(&inBody2), Mutable(&inSubShapeID2));
 }
 
 inline constexpr JPH::ContactConstraintManager::CombineFunction gContactCombineThunks[16] = {
@@ -408,13 +412,13 @@ public:
     void OnBodyActivated(const JPH::BodyID &inBodyID, JPH::uint64 inBodyUserData) override
     {
         if (mActivated != nullptr)
-            mActivated(mUserData, &inBodyID, inBodyUserData);
+            mActivated(mUserData, Mutable(&inBodyID), inBodyUserData);
     }
 
     void OnBodyDeactivated(const JPH::BodyID &inBodyID, JPH::uint64 inBodyUserData) override
     {
         if (mDeactivated != nullptr)
-            mDeactivated(mUserData, &inBodyID, inBodyUserData);
+            mDeactivated(mUserData, Mutable(&inBodyID), inBodyUserData);
     }
 
 private:
@@ -427,7 +431,7 @@ class PhysicsStepListenerAdapter final : public JPH::PhysicsStepListener
 {
 public:
     PhysicsStepListenerAdapter(PhysicsStepCallback inCallback, void *inUserData) : mCallback(inCallback), mUserData(inUserData) { }
-    void OnStep(const JPH::PhysicsStepListenerContext &inContext) override { mCallback(mUserData, &inContext); }
+    void OnStep(const JPH::PhysicsStepListenerContext &inContext) override { mCallback(mUserData, Mutable(&inContext)); }
 
 private:
     PhysicsStepCallback mCallback;
@@ -442,25 +446,25 @@ public:
 
     JPH::ValidateResult OnContactValidate(const JPH::Body &inBody1, const JPH::Body &inBody2, JPH::RVec3Arg inBaseOffset, const JPH::CollideShapeResult &inResult) override
     {
-        return mValidate == nullptr? JPH::ValidateResult::AcceptAllContactsForThisBodyPair : mValidate(mUserData, &inBody1, &inBody2, &inBaseOffset, &inResult);
+        return mValidate == nullptr? JPH::ValidateResult::AcceptAllContactsForThisBodyPair : mValidate(mUserData, Mutable(&inBody1), Mutable(&inBody2), Mutable(&inBaseOffset), Mutable(&inResult));
     }
 
     void OnContactAdded(const JPH::Body &inBody1, const JPH::Body &inBody2, const JPH::ContactManifold &inManifold, JPH::ContactSettings &ioSettings) override
     {
         if (mAdded != nullptr)
-            mAdded(mUserData, &inBody1, &inBody2, &inManifold, &ioSettings);
+            mAdded(mUserData, Mutable(&inBody1), Mutable(&inBody2), Mutable(&inManifold), &ioSettings);
     }
 
     void OnContactPersisted(const JPH::Body &inBody1, const JPH::Body &inBody2, const JPH::ContactManifold &inManifold, JPH::ContactSettings &ioSettings) override
     {
         if (mPersisted != nullptr)
-            mPersisted(mUserData, &inBody1, &inBody2, &inManifold, &ioSettings);
+            mPersisted(mUserData, Mutable(&inBody1), Mutable(&inBody2), Mutable(&inManifold), &ioSettings);
     }
 
     void OnContactRemoved(const JPH::SubShapeIDPair &inPair) override
     {
         if (mRemoved != nullptr)
-            mRemoved(mUserData, &inPair);
+            mRemoved(mUserData, Mutable(&inPair));
     }
 
 private:
@@ -479,13 +483,13 @@ public:
 
     JPH::SoftBodyValidateResult OnSoftBodyContactValidate(const JPH::Body &inSoftBody, const JPH::Body &inOtherBody, JPH::SoftBodyContactSettings &ioSettings) override
     {
-        return mValidate == nullptr? JPH::SoftBodyValidateResult::AcceptContact : mValidate(mUserData, &inSoftBody, &inOtherBody, &ioSettings);
+        return mValidate == nullptr? JPH::SoftBodyValidateResult::AcceptContact : mValidate(mUserData, Mutable(&inSoftBody), Mutable(&inOtherBody), &ioSettings);
     }
 
     void OnSoftBodyContactAdded(const JPH::Body &inSoftBody, const JPH::SoftBodyManifold &inManifold) override
     {
         if (mAdded != nullptr)
-            mAdded(mUserData, &inSoftBody, &inManifold);
+            mAdded(mUserData, Mutable(&inSoftBody), Mutable(&inManifold));
     }
 
 private:
@@ -502,7 +506,7 @@ public:
     bool ShouldCollide(const JPH::Body &inBody1, const JPH::Shape *inShape1, const JPH::SubShapeID &inSubShapeID1,
                        const JPH::Body &inBody2, const JPH::Shape *inShape2, const JPH::SubShapeID &inSubShapeID2) const override
     {
-        return mCallback(mUserData, &inBody1, inShape1, &inSubShapeID1, &inBody2, inShape2, &inSubShapeID2);
+        return mCallback(mUserData, Mutable(&inBody1), Mutable(inShape1), Mutable(&inSubShapeID1), Mutable(&inBody2), Mutable(inShape2), Mutable(&inSubShapeID2));
     }
 
 private:
@@ -559,8 +563,8 @@ class BodyFilterAdapter final : public JPH::BodyFilter
 public:
     BodyFilterAdapter(BodyIDFilterCallback inIDCallback, BodyFilterLockedCallback inLockedCallback, void *inUserData) :
         mIDCallback(inIDCallback), mLockedCallback(inLockedCallback), mUserData(inUserData) { }
-    bool ShouldCollide(const JPH::BodyID &inBodyID) const override { return mIDCallback == nullptr || mIDCallback(mUserData, &inBodyID); }
-    bool ShouldCollideLocked(const JPH::Body &inBody) const override { return mLockedCallback == nullptr || mLockedCallback(mUserData, &inBody); }
+    bool ShouldCollide(const JPH::BodyID &inBodyID) const override { return mIDCallback == nullptr || mIDCallback(mUserData, Mutable(&inBodyID)); }
+    bool ShouldCollideLocked(const JPH::Body &inBody) const override { return mLockedCallback == nullptr || mLockedCallback(mUserData, Mutable(&inBody)); }
 
 private:
     BodyIDFilterCallback mIDCallback;
@@ -575,11 +579,11 @@ public:
         mSingleCallback(inSingleCallback), mPairCallback(inPairCallback), mUserData(inUserData) { }
     bool ShouldCollide(const JPH::Shape *inShape2, const JPH::SubShapeID &inSubShapeID2) const override
     {
-        return mSingleCallback == nullptr || mSingleCallback(mUserData, inShape2, &inSubShapeID2);
+        return mSingleCallback == nullptr || mSingleCallback(mUserData, Mutable(inShape2), Mutable(&inSubShapeID2));
     }
     bool ShouldCollide(const JPH::Shape *inShape1, const JPH::SubShapeID &inSubShapeID1, const JPH::Shape *inShape2, const JPH::SubShapeID &inSubShapeID2) const override
     {
-        return mPairCallback == nullptr || mPairCallback(mUserData, inShape1, &inSubShapeID1, inShape2, &inSubShapeID2);
+        return mPairCallback == nullptr || mPairCallback(mUserData, Mutable(inShape1), Mutable(&inSubShapeID1), Mutable(inShape2), Mutable(&inSubShapeID2));
     }
 
 private:
@@ -596,10 +600,10 @@ public:
                                void *inUserData) :
         mBodyCallback(inBodyCallback), mConstraintCallback(inConstraintCallback), mSaveContactCallback(inSaveContactCallback),
         mRestoreContactCallback(inRestoreContactCallback), mUserData(inUserData) { }
-    bool ShouldSaveBody(const JPH::Body &inBody) const override { return mBodyCallback == nullptr || mBodyCallback(mUserData, &inBody); }
-    bool ShouldSaveConstraint(const JPH::Constraint &inConstraint) const override { return mConstraintCallback == nullptr || mConstraintCallback(mUserData, &inConstraint); }
-    bool ShouldSaveContact(const JPH::BodyID &inBody1, const JPH::BodyID &inBody2) const override { return mSaveContactCallback == nullptr || mSaveContactCallback(mUserData, &inBody1, &inBody2); }
-    bool ShouldRestoreContact(const JPH::BodyID &inBody1, const JPH::BodyID &inBody2) const override { return mRestoreContactCallback == nullptr || mRestoreContactCallback(mUserData, &inBody1, &inBody2); }
+    bool ShouldSaveBody(const JPH::Body &inBody) const override { return mBodyCallback == nullptr || mBodyCallback(mUserData, Mutable(&inBody)); }
+    bool ShouldSaveConstraint(const JPH::Constraint &inConstraint) const override { return mConstraintCallback == nullptr || mConstraintCallback(mUserData, Mutable(&inConstraint)); }
+    bool ShouldSaveContact(const JPH::BodyID &inBody1, const JPH::BodyID &inBody2) const override { return mSaveContactCallback == nullptr || mSaveContactCallback(mUserData, Mutable(&inBody1), Mutable(&inBody2)); }
+    bool ShouldRestoreContact(const JPH::BodyID &inBody1, const JPH::BodyID &inBody2) const override { return mRestoreContactCallback == nullptr || mRestoreContactCallback(mUserData, Mutable(&inBody1), Mutable(&inBody2)); }
 
 private:
     StateRecorderBodyCallback mBodyCallback;
@@ -645,51 +649,51 @@ public:
 
     void OnAdjustBodyVelocity(const JPH::CharacterVirtual *inCharacter, const JPH::Body &inBody2, JPH::Vec3 &ioLinearVelocity, JPH::Vec3 &ioAngularVelocity) override
     {
-        if (mAdjust != nullptr) mAdjust(mUserData, inCharacter, &inBody2, &ioLinearVelocity, &ioAngularVelocity);
+        if (mAdjust != nullptr) mAdjust(mUserData, Mutable(inCharacter), Mutable(&inBody2), &ioLinearVelocity, &ioAngularVelocity);
     }
     bool OnContactValidate(const JPH::CharacterVirtual *inCharacter, const JPH::CharacterContact &inContact) override
     {
-        return mValidate == nullptr || mValidate(mUserData, inCharacter, &inContact);
+        return mValidate == nullptr || mValidate(mUserData, Mutable(inCharacter), Mutable(&inContact));
     }
     void OnContactAdded(const JPH::CharacterVirtual *inCharacter, const JPH::CharacterContact &inContact, JPH::CharacterContactSettings &ioSettings) override
     {
-        if (mAdded != nullptr) mAdded(mUserData, inCharacter, &inContact, &ioSettings);
+        if (mAdded != nullptr) mAdded(mUserData, Mutable(inCharacter), Mutable(&inContact), &ioSettings);
     }
     void OnContactPersisted(const JPH::CharacterVirtual *inCharacter, const JPH::CharacterContact &inContact, JPH::CharacterContactSettings &ioSettings) override
     {
-        if (mPersisted != nullptr) mPersisted(mUserData, inCharacter, &inContact, &ioSettings);
+        if (mPersisted != nullptr) mPersisted(mUserData, Mutable(inCharacter), Mutable(&inContact), &ioSettings);
     }
     void OnContactRemoved(const JPH::CharacterVirtual *inCharacter, const JPH::BodyID &inBodyID2, const JPH::SubShapeID &inSubShapeID2) override
     {
-        if (mRemoved != nullptr) mRemoved(mUserData, inCharacter, &inBodyID2, &inSubShapeID2);
+        if (mRemoved != nullptr) mRemoved(mUserData, Mutable(inCharacter), Mutable(&inBodyID2), Mutable(&inSubShapeID2));
     }
     bool OnCharacterContactValidate(const JPH::CharacterVirtual *inCharacter, const JPH::CharacterContact &inContact) override
     {
-        return mCharacterValidate == nullptr || mCharacterValidate(mUserData, inCharacter, &inContact);
+        return mCharacterValidate == nullptr || mCharacterValidate(mUserData, Mutable(inCharacter), Mutable(&inContact));
     }
     void OnCharacterContactAdded(const JPH::CharacterVirtual *inCharacter, const JPH::CharacterContact &inContact, JPH::CharacterContactSettings &ioSettings) override
     {
-        if (mCharacterAdded != nullptr) mCharacterAdded(mUserData, inCharacter, &inContact, &ioSettings);
+        if (mCharacterAdded != nullptr) mCharacterAdded(mUserData, Mutable(inCharacter), Mutable(&inContact), &ioSettings);
     }
     void OnCharacterContactPersisted(const JPH::CharacterVirtual *inCharacter, const JPH::CharacterContact &inContact, JPH::CharacterContactSettings &ioSettings) override
     {
-        if (mCharacterPersisted != nullptr) mCharacterPersisted(mUserData, inCharacter, &inContact, &ioSettings);
+        if (mCharacterPersisted != nullptr) mCharacterPersisted(mUserData, Mutable(inCharacter), Mutable(&inContact), &ioSettings);
     }
     void OnCharacterContactRemoved(const JPH::CharacterVirtual *inCharacter, const JPH::CharacterID &inOtherCharacterID, const JPH::SubShapeID &inSubShapeID2) override
     {
-        if (mCharacterRemoved != nullptr) mCharacterRemoved(mUserData, inCharacter, &inOtherCharacterID, &inSubShapeID2);
+        if (mCharacterRemoved != nullptr) mCharacterRemoved(mUserData, Mutable(inCharacter), Mutable(&inOtherCharacterID), Mutable(&inSubShapeID2));
     }
     void OnContactSolve(const JPH::CharacterVirtual *inCharacter, const JPH::BodyID &inBodyID2, const JPH::SubShapeID &inSubShapeID2,
         JPH::RVec3Arg inContactPosition, JPH::Vec3Arg inContactNormal, JPH::Vec3Arg inContactVelocity, const JPH::PhysicsMaterial *inContactMaterial,
         JPH::Vec3Arg inCharacterVelocity, JPH::Vec3 &ioNewCharacterVelocity) override
     {
-        if (mBodySolve != nullptr) mBodySolve(mUserData, inCharacter, &inBodyID2, &inSubShapeID2, &inContactPosition, &inContactNormal, &inContactVelocity, inContactMaterial, &inCharacterVelocity, &ioNewCharacterVelocity);
+        if (mBodySolve != nullptr) mBodySolve(mUserData, Mutable(inCharacter), Mutable(&inBodyID2), Mutable(&inSubShapeID2), Mutable(&inContactPosition), Mutable(&inContactNormal), Mutable(&inContactVelocity), Mutable(inContactMaterial), Mutable(&inCharacterVelocity), &ioNewCharacterVelocity);
     }
     void OnCharacterContactSolve(const JPH::CharacterVirtual *inCharacter, const JPH::CharacterVirtual *inOtherCharacter, const JPH::SubShapeID &inSubShapeID2,
         JPH::RVec3Arg inContactPosition, JPH::Vec3Arg inContactNormal, JPH::Vec3Arg inContactVelocity, const JPH::PhysicsMaterial *inContactMaterial,
         JPH::Vec3Arg inCharacterVelocity, JPH::Vec3 &ioNewCharacterVelocity) override
     {
-        if (mCharacterSolve != nullptr) mCharacterSolve(mUserData, inCharacter, inOtherCharacter, &inSubShapeID2, &inContactPosition, &inContactNormal, &inContactVelocity, inContactMaterial, &inCharacterVelocity, &ioNewCharacterVelocity);
+        if (mCharacterSolve != nullptr) mCharacterSolve(mUserData, Mutable(inCharacter), Mutable(inOtherCharacter), Mutable(&inSubShapeID2), Mutable(&inContactPosition), Mutable(&inContactNormal), Mutable(&inContactVelocity), Mutable(inContactMaterial), Mutable(&inCharacterVelocity), &ioNewCharacterVelocity);
     }
 
 private:
@@ -715,12 +719,12 @@ public:
     void CollideCharacter(const JPH::CharacterVirtual *inCharacter, JPH::RMat44Arg inCenterOfMassTransform,
         const JPH::CollideShapeSettings &inSettings, JPH::RVec3Arg inBaseOffset, JPH::CollideShapeCollector &ioCollector) const override
     {
-        mCollide(mUserData, inCharacter, &inCenterOfMassTransform, &inSettings, &inBaseOffset, &ioCollector);
+        mCollide(mUserData, Mutable(inCharacter), Mutable(&inCenterOfMassTransform), Mutable(&inSettings), Mutable(&inBaseOffset), &ioCollector);
     }
     void CastCharacter(const JPH::CharacterVirtual *inCharacter, JPH::RMat44Arg inCenterOfMassTransform, JPH::Vec3Arg inDirection,
         const JPH::ShapeCastSettings &inSettings, JPH::RVec3Arg inBaseOffset, JPH::CastShapeCollector &ioCollector) const override
     {
-        mCast(mUserData, inCharacter, &inCenterOfMassTransform, &inDirection, &inSettings, &inBaseOffset, &ioCollector);
+        mCast(mUserData, Mutable(inCharacter), Mutable(&inCenterOfMassTransform), Mutable(&inDirection), Mutable(&inSettings), Mutable(&inBaseOffset), &ioCollector);
     }
 
 private:
@@ -738,7 +742,7 @@ public:
         JPH::RVec3Arg inOrigin, JPH::Vec3Arg inDirection, const JPH::BodyID &inVehicleBodyID, JPH::Body *&outBody,
         JPH::SubShapeID &outSubShapeID, JPH::RVec3 &outContactPosition, JPH::Vec3 &outContactNormal, float &outSuspensionLength) const override
     {
-        return mCollide(mUserData, &inPhysicsSystem, &inVehicleConstraint, inWheelIndex, &inOrigin, &inDirection, &inVehicleBodyID,
+        return mCollide(mUserData, &inPhysicsSystem, Mutable(&inVehicleConstraint), inWheelIndex, Mutable(&inOrigin), Mutable(&inDirection), Mutable(&inVehicleBodyID),
             &outBody, &outSubShapeID, &outContactPosition, &outContactNormal, &outSuspensionLength);
     }
     void PredictContactProperties(JPH::PhysicsSystem &inPhysicsSystem, const JPH::VehicleConstraint &inVehicleConstraint, JPH::uint inWheelIndex,
@@ -746,7 +750,7 @@ public:
         JPH::SubShapeID &ioSubShapeID, JPH::RVec3 &ioContactPosition, JPH::Vec3 &ioContactNormal, float &ioSuspensionLength) const override
     {
         if (mPredict != nullptr)
-            mPredict(mUserData, &inPhysicsSystem, &inVehicleConstraint, inWheelIndex, &inOrigin, &inDirection, &inVehicleBodyID,
+            mPredict(mUserData, &inPhysicsSystem, Mutable(&inVehicleConstraint), inWheelIndex, Mutable(&inOrigin), Mutable(&inDirection), Mutable(&inVehicleBodyID),
                 &ioBody, &ioSubShapeID, &ioContactPosition, &ioContactNormal, &ioSuspensionLength);
     }
 
@@ -760,10 +764,10 @@ template <class Collector, class Result>
 class CollisionCollectorAdapter final : public Collector
 {
 public:
-    using Callback = void (*)(void *, const Result *);
+    using Callback = void (*)(void *, Result *);
 
     CollisionCollectorAdapter(Callback inCallback, void *inUserData) : mCallback(inCallback), mUserData(inUserData) { }
-    void AddHit(const Result &inResult) override { mCallback(mUserData, &inResult); }
+    void AddHit(const Result &inResult) override { mCallback(mUserData, Mutable(&inResult)); }
 
 private:
     Callback mCallback;
@@ -831,42 +835,42 @@ inline JPH::TempAllocator *AsTempAllocator(JPH::TempAllocatorImpl *inAllocator)
 }
 
 template <class ShapeType>
-inline const JPH::Shape *AsShape(const ShapeType *inShape)
+inline JPH::Shape *AsShape(ShapeType *inShape)
 {
     return inShape;
 }
 
 template <class SettingsType>
-inline const JPH::ShapeSettings *AsShapeSettings(const SettingsType *inSettings)
+inline JPH::ShapeSettings *AsShapeSettings(SettingsType *inSettings)
 {
     return inSettings;
 }
 
 template <class ShapeType>
-inline const JPH::ConvexShape *AsConvexShape(const ShapeType *inShape)
+inline JPH::ConvexShape *AsConvexShape(ShapeType *inShape)
 {
     return inShape;
 }
 
 template <class ShapeType>
-inline const JPH::CompoundShape *AsCompoundShape(const ShapeType *inShape)
+inline JPH::CompoundShape *AsCompoundShape(ShapeType *inShape)
 {
     return inShape;
 }
 
 template <class ShapeType>
-inline const JPH::DecoratedShape *AsDecoratedShape(const ShapeType *inShape)
+inline JPH::DecoratedShape *AsDecoratedShape(ShapeType *inShape)
 {
     return inShape;
 }
 
 template <class SettingsType>
-inline const JPH::TwoBodyConstraintSettings *AsTwoBodyConstraintSettings(const SettingsType *inSettings)
+inline JPH::TwoBodyConstraintSettings *AsTwoBodyConstraintSettings(SettingsType *inSettings)
 {
     return inSettings;
 }
 
-inline const JPH::PathConstraintPath *AsPathConstraintPath(const JPH::PathConstraintPathHermite *inPath)
+inline JPH::PathConstraintPath *AsPathConstraintPath(JPH::PathConstraintPathHermite *inPath)
 {
     return inPath;
 }
@@ -903,9 +907,9 @@ inline void SetCharacterSettingsShape(JPH::CharacterBaseSettings *inSettings, co
     inSettings->mShape = inShape;
 }
 
-inline const JPH::Shape *GetCharacterSettingsShape(const JPH::CharacterBaseSettings *inSettings)
+inline JPH::Shape *GetCharacterSettingsShape(const JPH::CharacterBaseSettings *inSettings)
 {
-    return inSettings->mShape;
+    return const_cast<JPH::Shape *>(static_cast<const JPH::Shape *>(inSettings->mShape));
 }
 
 inline void SetCharacterVirtualInnerBodyShape(JPH::CharacterVirtualSettings *inSettings, const JPH::Shape *inShape)
@@ -913,9 +917,9 @@ inline void SetCharacterVirtualInnerBodyShape(JPH::CharacterVirtualSettings *inS
     inSettings->mInnerBodyShape = inShape;
 }
 
-inline const JPH::Shape *GetCharacterVirtualInnerBodyShape(const JPH::CharacterVirtualSettings *inSettings)
+inline JPH::Shape *GetCharacterVirtualInnerBodyShape(const JPH::CharacterVirtualSettings *inSettings)
 {
-    return inSettings->mInnerBodyShape;
+    return const_cast<JPH::Shape *>(static_cast<const JPH::Shape *>(inSettings->mInnerBodyShape));
 }
 
 inline JPH::BodyCreationSettings *AsBodyCreationSettings(JPH::RagdollSettings::Part *inPart)
@@ -1031,9 +1035,9 @@ inline JPH::SkeletalAnimation::AnimatedJoint *GetSkeletalAnimationJoint(JPH::Ske
     return &inAnimation->GetAnimatedJoints()[inIndex];
 }
 
-inline const char *GetSkeletalAnimationJointName(const JPH::SkeletalAnimation::AnimatedJoint *inJoint)
+inline char *GetSkeletalAnimationJointName(const JPH::SkeletalAnimation::AnimatedJoint *inJoint)
 {
-    return inJoint->mJointName.c_str();
+    return const_cast<char *>(inJoint->mJointName.c_str());
 }
 
 inline void ClearSkeletalAnimationJoints(JPH::SkeletalAnimation *inAnimation)
@@ -1151,9 +1155,9 @@ inline void SetPathConstraintSettingsPath(JPH::PathConstraintSettings *inSetting
     inSettings->mPath = inPath;
 }
 
-inline const JPH::PathConstraintPath *GetPathConstraintSettingsPath(const JPH::PathConstraintSettings *inSettings)
+inline JPH::PathConstraintPath *GetPathConstraintSettingsPath(const JPH::PathConstraintSettings *inSettings)
 {
-    return inSettings->mPath;
+    return const_cast<JPH::PathConstraintPath *>(static_cast<const JPH::PathConstraintPath *>(inSettings->mPath));
 }
 
 inline void AddVehicleWheelSettings(JPH::VehicleConstraintSettings *inSettings, JPH::WheelSettings *inWheel)
@@ -1272,7 +1276,7 @@ inline JPH::PhysicsSystem::SimCollideBodyVsBody MakeSimCollideBodyVsBody(SimColl
 {
     return [inCallback, inUserData](const JPH::Body &inBody1, const JPH::Body &inBody2, JPH::Mat44Arg inTransform1, JPH::Mat44Arg inTransform2, JPH::CollideShapeSettings &ioSettings, JPH::CollideShapeCollector &ioCollector, const JPH::ShapeFilter &inFilter)
     {
-        inCallback(inUserData, &inBody1, &inBody2, &inTransform1, &inTransform2, &ioSettings, &ioCollector, &inFilter);
+        inCallback(inUserData, Mutable(&inBody1), Mutable(&inBody2), Mutable(&inTransform1), Mutable(&inTransform2), &ioSettings, &ioCollector, Mutable(&inFilter));
     };
 }
 
@@ -1280,7 +1284,7 @@ inline JPH::ComputeSystem::ShaderLoader MakeShaderLoader(ShaderLoaderCallback in
 {
     return [inCallback, inUserData](const char *inName, JPH::Array<JPH::uint8> &outData, JPH::String &outError)
     {
-        return inCallback(inUserData, inName, &outData, &outError);
+        return inCallback(inUserData, Mutable(inName), &outData, &outError);
     };
 }
 
@@ -1306,7 +1310,7 @@ inline JPH::VehicleConstraint::CombineFunction MakeVehicleCombineFriction(Vehicl
 {
     return [inCallback, inUserData](JPH::uint inWheelIndex, float &ioLongitudinal, float &ioLateral, const JPH::Body &inBody, const JPH::SubShapeID &inSubShapeID)
     {
-        inCallback(inUserData, inWheelIndex, &ioLongitudinal, &ioLateral, &inBody, &inSubShapeID);
+        inCallback(inUserData, inWheelIndex, &ioLongitudinal, &ioLateral, Mutable(&inBody), Mutable(&inSubShapeID));
     };
 }
 
@@ -1314,7 +1318,7 @@ inline JPH::VehicleConstraint::StepCallback MakeVehicleStepCallback(VehicleStepC
 {
     return [inCallback, inUserData](JPH::VehicleConstraint &inVehicle, const JPH::PhysicsStepListenerContext &inContext)
     {
-        inCallback(inUserData, &inVehicle, &inContext);
+        inCallback(inUserData, &inVehicle, Mutable(&inContext));
     };
 }
 
