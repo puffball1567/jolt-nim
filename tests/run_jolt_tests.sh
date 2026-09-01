@@ -19,8 +19,12 @@ run_test() {
   test_name=${test_source##*/}
   test_name=${test_name%.nim}
   test_binary="$nim_cache/$test_name"
+  platform_link_flags=
   case "$(uname -s)" in
-    MINGW*|MSYS*|CYGWIN*) test_binary="$test_binary.exe" ;;
+    MINGW*|MSYS*|CYGWIN*)
+      test_binary="$test_binary.exe"
+      platform_link_flags="--passL:-static-libgcc --passL:-static-libstdc++"
+      ;;
   esac
   nim cpp --path:src \
     --nimcache:"$nim_cache" \
@@ -48,6 +52,7 @@ run_test() {
     --passC:-pthread \
     --passL:"$jolt_library" \
     --passL:-pthread \
+    $platform_link_flags \
     "$test_source"
   if ! "$test_binary"; then
     case "$(uname -s)" in
