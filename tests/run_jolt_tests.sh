@@ -46,6 +46,9 @@ run_test() {
     --passL:"$jolt_library" \
     --passL:-pthread \
     "$test_source"
+  if [ -f "$test_binary.exe" ]; then
+    test_binary="$test_binary.exe"
+  fi
   "$test_binary"
 }
 
