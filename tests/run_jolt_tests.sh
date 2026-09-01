@@ -51,7 +51,12 @@ run_test() {
     "$test_source"
   if ! "$test_binary"; then
     case "$(uname -s)" in
-      MINGW*|MSYS*|CYGWIN*) ldd "$test_binary" || true ;;
+      MINGW*|MSYS*|CYGWIN*)
+        ldd "$test_binary" || true
+        if command -v gdb >/dev/null 2>&1; then
+          gdb --batch -ex run -ex bt "$test_binary" || true
+        fi
+        ;;
     esac
     return 1
   fi
