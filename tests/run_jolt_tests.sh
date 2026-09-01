@@ -19,6 +19,9 @@ run_test() {
   test_name=${test_source##*/}
   test_name=${test_name%.nim}
   test_binary="$nim_cache/$test_name"
+  case "$(uname -s)" in
+    MINGW*|MSYS*|CYGWIN*) test_binary="$test_binary.exe" ;;
+  esac
   nim cpp --path:src \
     --nimcache:"$nim_cache" \
     --out:"$test_binary" \
@@ -46,9 +49,6 @@ run_test() {
     --passL:"$jolt_library" \
     --passL:-pthread \
     "$test_source"
-  if [ -f "$test_binary.exe" ]; then
-    test_binary="$test_binary.exe"
-  fi
   "$test_binary"
 }
 
