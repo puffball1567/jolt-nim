@@ -774,6 +774,19 @@ let exactPart = querySubShape(enemyHit.get)
 discard layeredWorld.castRay(
   vec3(0, 10, 0), vec3(0, -1, 0), 20,
   subShapeFilter = includeSubShapes([exactPart]))
+
+let awakeDynamics = layeredWorld.queryBodyFilter(bodyQueryCriteria(
+  motionTypes = {MotionType.Dynamic},
+  layers = @[movingLayer, enemyLayer],
+  active = some(true),
+  sensor = some(false)))
+discard layeredWorld.castRayAll(
+  vec3(0, 10, 0), vec3(0, -1, 0), 20,
+  bodyFilter = awakeDynamics)
+
+let gameplayObjects = layeredWorld.queryBodyFilter(
+  proc(info: QueryBodyInfo): bool =
+    info.userData != 0 and not info.softBody)
 ```
 
 The same `QueryLayerSet` overload is available for every narrow-phase and
@@ -787,6 +800,16 @@ all narrow-phase ray, sphere, convex-shape, overlap, and point queries, as well
 as broad-phase box, sphere, point, oriented-box, ray, and box-cast queries. They
 can be combined with either an exact layer or `QueryLayerSet`; stale IDs and IDs
 outside the queried world are rejected before entering Jolt.
+
+`queryBodies` captures detached `QueryBodyInfo` values for every body owned by
+the world under one native multi-body read lock. `bodyQueryCriteria` selects by
+live motion type, layer, activation, sensor, soft-body, broad-phase and user-data
+properties. An arbitrary `QueryBodyPredicate` can perform application-specific
+selection. Predicates run on the calling Nim thread only after native locks are
+released; Jolt and its worker threads receive the resolved ID filter, never a
+Nim callback. Property filters are snapshots and should be rebuilt after a
+property relevant to the selection changes. A selection matching zero bodies
+correctly rejects every query candidate.
 
 `includeSubShapes` and `excludeSubShapes` select exact `(BodyId, SubShapeId)`
 pairs returned by earlier query or contact results. They cover compound children,
@@ -1180,7 +1203,7 @@ examples/run_sdl3_demo.sh \
 
 ## Tests
 
-The native suite contains 293 high-level cases plus raw ABI/configuration checks.
+The native suite contains 299 high-level cases plus raw ABI/configuration checks.
 It covers shape validation and contacts, body lifetime and dynamics, all twelve
 constraint families, narrow- and broad-phase queries, collision groups, sensors,
 triangle-mesh, height-field, decorated shapes and live mutable compounds,
@@ -1322,7 +1345,7 @@ The current implementation covers:
 - capacity error reporting from `PhysicsSystem::Update`.
 
 High-level debug-renderer integration, additional ownership-safe wrappers for
-direct user callbacks and property-based body/shape query filters,
+native simulation callbacks and property-based sub-shape query filters,
 broad cross-version ObjectStream compatibility guarantees,
 arbitrary soft-body contact callbacks, soft-soft collision, a dedicated hair
 abstraction, double

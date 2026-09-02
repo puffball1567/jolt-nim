@@ -1,6 +1,6 @@
 ## Ownership-aware core API for Jolt Physics.
 
-import std/[math, options]
+import std/[math, options, sets]
 import jolt/bridge as raw
 
 type
@@ -1007,6 +1007,30 @@ type
 
   BodyId* = distinct uint32
 
+  QueryBodyInfo* = object
+    ## Detached body properties captured under one native multi-body read lock.
+    bodyId*: BodyId
+    motionType*: MotionType
+    collisionLayer*: CollisionLayer
+    position*: Vec3
+    active*: bool
+    sensor*: bool
+    softBody*: bool
+    inBroadPhase*: bool
+    userData*: uint64
+
+  BodyQueryCriteria* = object
+    ## Empty motion/layer sets and `none` boolean/user-data values match any.
+    motionTypes*: set[MotionType]
+    layers*: seq[CollisionLayer]
+    active*: Option[bool]
+    sensor*: Option[bool]
+    softBody*: Option[bool]
+    inBroadPhase*: Option[bool]
+    userData*: Option[uint64]
+
+  QueryBodyPredicate* = proc(info: QueryBodyInfo): bool {.closure.}
+
   QueryBodyFilterMode* = enum
     IncludeOnly
     Exclude
@@ -1014,6 +1038,7 @@ type
   QueryBodyFilter* = object
     bodyIds: seq[uint32]
     mode: QueryBodyFilterMode
+    enabled: bool
 
   QuerySubShape* = object
     bodyId*: BodyId
@@ -3507,11 +3532,30 @@ proc requireLayers(world: World; layers: QueryLayerSet) =
   for layer in layers.layers:
     world.requireLayer(layer)
 
+proc bodyQueryCriteria*(motionTypes: set[MotionType] = {};
+                        layers: seq[CollisionLayer] = @[];
+                        active = none(bool);
+                        sensor = none(bool);
+                        softBody = none(bool);
+                        inBroadPhase = none(bool);
+                        userData = none(uint64)): BodyQueryCriteria =
+  ## Builds reusable declarative criteria for `queryBodies` and
+  ## `queryBodyFilter`. Empty sets and absent values are unconstrained.
+  BodyQueryCriteria(
+    motionTypes: motionTypes,
+    layers: layers,
+    active: active,
+    sensor: sensor,
+    softBody: softBody,
+    inBroadPhase: inBroadPhase,
+    userData: userData)
+
 proc queryBodyFilter*(bodyIds: openArray[BodyId];
                       mode: QueryBodyFilterMode): QueryBodyFilter =
   if bodyIds.len == 0:
     raise newException(ValueError, "a query body filter must not be empty")
   result.mode = mode
+  result.enabled = true
   for bodyId in bodyIds:
     let value = uint32(bodyId)
     if value == high(uint32):
@@ -3531,8 +3575,11 @@ func len*(filter: QueryBodyFilter): int =
 func filterMode*(filter: QueryBodyFilter): QueryBodyFilterMode =
   filter.mode
 
+func isEnabled*(filter: QueryBodyFilter): bool =
+  filter.enabled
+
 proc requireBodyFilter(world: World; filter: QueryBodyFilter) =
-  if filter.bodyIds.len == 0:
+  if not filter.enabled:
     return
   for filterId in filter.bodyIds:
     if filterId notin world.bodyIds and filterId notin world.characterBodyIds and
@@ -3548,7 +3595,110 @@ proc nativeBodyIds(filter: QueryBodyFilter): ptr uint32 =
     unsafeAddr filter.bodyIds[0]
 
 func includesOnly(filter: QueryBodyFilter): bool =
-  filter.bodyIds.len > 0 and filter.mode == QueryBodyFilterMode.IncludeOnly
+  filter.enabled and filter.mode == QueryBodyFilterMode.IncludeOnly
+
+proc trackedBodyIds(world: World): seq[uint32] =
+  var seen = initHashSet[uint32]()
+  template appendUnique(source: untyped) =
+    for bodyId in source:
+      if bodyId notin seen:
+        seen.incl(bodyId)
+        result.add(bodyId)
+  appendUnique(world.bodyIds)
+  appendUnique(world.characterBodyIds)
+  appendUnique(world.rigidCharacterBodyIds)
+  appendUnique(world.ragdollBodyIds)
+
+proc queryBodies*(world: World): seq[QueryBodyInfo] =
+  ## Captures every body currently owned by the world under one native
+  ## multi-body read lock. Returned values are detached from Jolt.
+  world.requireOpen()
+  let ids = world.trackedBodyIds()
+  if ids.len == 0:
+    return @[]
+  if uint64(ids.len) > uint64(high(uint32)):
+    raise newException(ValueError, "too many bodies to query")
+
+  var native = newSeq[raw.BodySnapshotData](ids.len)
+  world.physics.readBodySnapshots(
+    unsafeAddr ids[0], uint32(ids.len), addr native[0])
+  result = newSeqOfCap[QueryBodyInfo](ids.len)
+  for index, state in native:
+    if not state.mSucceeded:
+      raise newException(JoltError, "Jolt could not lock a body for query")
+    if state.mMotionType > uint8(ord(high(MotionType))):
+      raise newException(JoltError, "Jolt returned an unknown body motion type")
+    if uint32(state.mObjectLayer) >= world.layerCount:
+      raise newException(JoltError, "Jolt returned an unknown body collision layer")
+    result.add(QueryBodyInfo(
+      bodyId: BodyId(ids[index]),
+      motionType: MotionType(state.mMotionType),
+      collisionLayer: CollisionLayer(state.mObjectLayer),
+      position: state.mPosition.fromRaw,
+      active: state.mActive,
+      sensor: state.mSensor,
+      softBody: state.mSoftBody,
+      inBroadPhase: state.mInBroadPhase,
+      userData: state.mUserData))
+
+func matches(info: QueryBodyInfo; criteria: BodyQueryCriteria): bool =
+  if criteria.motionTypes != {} and info.motionType notin criteria.motionTypes:
+    return false
+  if criteria.layers.len > 0 and info.collisionLayer notin criteria.layers:
+    return false
+  if criteria.active.isSome and info.active != criteria.active.get:
+    return false
+  if criteria.sensor.isSome and info.sensor != criteria.sensor.get:
+    return false
+  if criteria.softBody.isSome and info.softBody != criteria.softBody.get:
+    return false
+  if criteria.inBroadPhase.isSome and
+      info.inBroadPhase != criteria.inBroadPhase.get:
+    return false
+  if criteria.userData.isSome and info.userData != criteria.userData.get:
+    return false
+  true
+
+proc queryBodies*(world: World;
+                  criteria: BodyQueryCriteria): seq[QueryBodyInfo] =
+  ## Applies declarative criteria to a detached, internally consistent body
+  ## snapshot. No user code runs while Jolt body locks are held.
+  world.requireOpen()
+  for layer in criteria.layers:
+    world.requireLayer(layer)
+  for info in world.queryBodies():
+    if info.matches(criteria):
+      result.add(info)
+
+proc queryBodies*(world: World;
+                  predicate: QueryBodyPredicate): seq[QueryBodyInfo] =
+  ## Runs an arbitrary Nim predicate on the caller thread after all native
+  ## body locks have been released.
+  world.requireOpen()
+  if predicate.isNil:
+    raise newException(ValueError, "query body predicate must not be nil")
+  let snapshot = world.queryBodies()
+  for info in snapshot:
+    if predicate(info):
+      result.add(info)
+
+proc queryBodyFilter*(world: World;
+                      criteria: BodyQueryCriteria): QueryBodyFilter =
+  ## Resolves body properties to a reusable native ID filter. The selection is
+  ## a snapshot; call this again after relevant body properties change.
+  result.enabled = true
+  result.mode = QueryBodyFilterMode.IncludeOnly
+  for info in world.queryBodies(criteria):
+    result.bodyIds.add(uint32(info.bodyId))
+
+proc queryBodyFilter*(world: World;
+                      predicate: QueryBodyPredicate): QueryBodyFilter =
+  ## Resolves a caller-thread Nim predicate to a reusable native ID filter.
+  ## The predicate is never invoked by Jolt or from a Jolt worker thread.
+  result.enabled = true
+  result.mode = QueryBodyFilterMode.IncludeOnly
+  for info in world.queryBodies(predicate):
+    result.bodyIds.add(uint32(info.bodyId))
 
 func querySubShape*(bodyId: BodyId; subShapeId: uint32): QuerySubShape =
   QuerySubShape(bodyId: bodyId, subShapeId: subShapeId)

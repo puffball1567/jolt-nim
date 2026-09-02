@@ -24,6 +24,7 @@ import test_constraints_and_queries
 import test_advanced_constraints
 import test_specialized_constraints
 import test_spatial_queries
+import test_query_body_filters
 import test_shape_casts
 import test_convex_queries
 import test_broad_phase_queries

@@ -2,6 +2,17 @@
 
 All notable changes to joltnim are documented in this file.
 
+## 0.2.0 - Unreleased
+
+### Added
+
+- Detached world-wide body query snapshots covering rigid, soft, character,
+  scene and ragdoll bodies.
+- Declarative property filters for motion type, collision layer, activation,
+  sensor, soft-body, broad-phase and user-data state.
+- Caller-thread Nim predicates that resolve to reusable native query filters
+  without invoking Nim from Jolt worker threads.
+
 ## 0.1.1 - 2026-09-01
 
 ### Fixed

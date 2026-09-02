@@ -91,6 +91,7 @@ type
   BodySnapshotData* {.importcpp: "joltnim_detail::BodySnapshotData",
                       header: joltBindingsHeader.} = object
     mSucceeded*: bool
+    mSoftBody*: bool
     mMotionType*: uint8
     mObjectLayer*: uint16
     mPosition*: Vec3
