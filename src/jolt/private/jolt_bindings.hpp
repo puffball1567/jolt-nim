@@ -387,6 +387,7 @@ inline void ConfigureBodyCreationSettings(
 struct BodySnapshotData
 {
     bool mSucceeded = false;
+    bool mSoftBody = false;
     std::uint8_t mMotionType = 0;
     std::uint16_t mObjectLayer = 0;
     JPH::Vec3 mPosition = JPH::Vec3::sZero();
@@ -449,6 +450,7 @@ inline void ReadBodySnapshots(
             continue;
 
         snapshot.mSucceeded = true;
+        snapshot.mSoftBody = !body->IsRigidBody();
         snapshot.mMotionType = static_cast<std::uint8_t>(body->GetMotionType());
         snapshot.mObjectLayer = body->GetObjectLayer();
         snapshot.mPosition = JPH::Vec3(body->GetPosition());
@@ -9029,7 +9031,7 @@ public:
     virtual bool ShouldCollide(const JPH::BodyID &inBodyID) const override
     {
         if (mBodyIDCount == 0)
-            return true;
+            return !mIncludeBodies;
         const std::uint32_t id = inBodyID.GetIndexAndSequenceNumber();
         for (std::uint32_t index = 0; index < mBodyIDCount; ++index)
             if (mBodyIDs[index] == id)
