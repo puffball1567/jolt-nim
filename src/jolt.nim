@@ -1040,6 +1040,88 @@ type
     mode: QueryBodyFilterMode
     enabled: bool
 
+  DebugShapeColorMode* = enum
+    DebugInstanceColor
+    DebugShapeTypeColor
+    DebugMotionTypeColor
+    DebugSleepColor
+    DebugIslandColor
+    DebugMaterialColor
+
+  DebugSoftBodyConstraintColorMode* = enum
+    DebugConstraintTypeColor
+    DebugConstraintGroupColor
+    DebugConstraintOrderColor
+
+  DebugColor* = object
+    r*, g*, b*, a*: uint8
+
+  DebugLine* = object
+    fromPosition*, toPosition*: Vec3
+    color*: DebugColor
+
+  DebugTriangle* = object
+    v1*, v2*, v3*: Vec3
+    color*: DebugColor
+    castsShadow*: bool
+
+  DebugText* = object
+    position*: Vec3
+    text*: string
+    color*: DebugColor
+    height*: float32
+
+  DebugBodyDrawSettings* = object
+    drawGetSupportFunction*: bool
+    drawSupportDirection*: bool
+    drawGetSupportingFace*: bool
+    drawShape*: bool
+    drawShapeWireframe*: bool
+    shapeColor*: DebugShapeColorMode
+    drawBoundingBox*: bool
+    drawCenterOfMassTransform*: bool
+    drawWorldTransform*: bool
+    drawVelocity*: bool
+    drawMassAndInertia*: bool
+    drawSleepStats*: bool
+    drawSoftBodyVertices*: bool
+    drawSoftBodyVertexVelocities*: bool
+    drawSoftBodyEdgeConstraints*: bool
+    drawSoftBodyBendConstraints*: bool
+    drawSoftBodyVolumeConstraints*: bool
+    drawSoftBodySkinConstraints*: bool
+    drawSoftBodyLRAConstraints*: bool
+    drawSoftBodyRods*: bool
+    drawSoftBodyRodStates*: bool
+    drawSoftBodyRodBendTwistConstraints*: bool
+    drawSoftBodyPredictedBounds*: bool
+    softBodyConstraintColor*: DebugSoftBodyConstraintColorMode
+
+  DebugDrawLimits* = object
+    maxLines*: uint
+    maxTriangles*: uint
+    maxTexts*: uint
+    maxTextBytes*: uint
+
+  DebugDrawOptions* = object
+    cameraPosition*: Vec3
+    bodySettings*: DebugBodyDrawSettings
+    bodyFilter*: QueryBodyFilter
+    drawBodies*: bool
+    drawConstraints*: bool
+    drawConstraintLimits*: bool
+    drawConstraintReferenceFrames*: bool
+    limits*: DebugDrawLimits
+
+  DebugDrawFrame* = object
+    ## Detached primitives ready for raylib, naylib, SDL3 or another renderer.
+    lines*: seq[DebugLine]
+    triangles*: seq[DebugTriangle]
+    texts*: seq[DebugText]
+    droppedLines*: uint64
+    droppedTriangles*: uint64
+    droppedTexts*: uint64
+
   QuerySubShape* = object
     bodyId*: BodyId
     subShapeId*: uint32
@@ -2945,6 +3027,38 @@ func defaultWorldConfig*(): WorldConfig =
     contactPolicies: @[]
   )
 
+func debugRendererEnabled*(): bool =
+  ## True when this module was compiled with `-d:joltDebugRenderer`.
+  when defined(joltDebugRenderer):
+    true
+  else:
+    false
+
+func defaultDebugBodyDrawSettings*(): DebugBodyDrawSettings =
+  ## Matches Jolt's `BodyManager::DrawSettings` defaults.
+  DebugBodyDrawSettings(
+    drawShape: true,
+    shapeColor: DebugMotionTypeColor,
+    softBodyConstraintColor: DebugConstraintTypeColor)
+
+func defaultDebugDrawLimits*(): DebugDrawLimits =
+  ## Bounds memory use while retaining enough primitives for large scenes.
+  DebugDrawLimits(
+    maxLines: 262_144,
+    maxTriangles: 262_144,
+    maxTexts: 4_096,
+    maxTextBytes: 1_048_576)
+
+func defaultDebugDrawOptions*(): DebugDrawOptions =
+  DebugDrawOptions(
+    bodySettings: defaultDebugBodyDrawSettings(),
+    drawBodies: true,
+    limits: defaultDebugDrawLimits())
+
+func truncated*(frame: DebugDrawFrame): bool =
+  frame.droppedLines != 0 or frame.droppedTriangles != 0 or
+    frame.droppedTexts != 0
+
 func toRaw(value: Vec3): raw.Vec3 =
   raw.vec3(value.x, value.y, value.z)
 
@@ -3699,6 +3813,128 @@ proc queryBodyFilter*(world: World;
   result.mode = QueryBodyFilterMode.IncludeOnly
   for info in world.queryBodies(predicate):
     result.bodyIds.add(uint32(info.bodyId))
+
+proc validate(limits: DebugDrawLimits) =
+  for value in [limits.maxLines, limits.maxTriangles, limits.maxTexts]:
+    if uint64(value) > uint64(high(uint32)) or value > uint(high(int)):
+      raise newException(ValueError, "debug draw limits exceed this platform")
+  if limits.maxTextBytes > uint(high(int)):
+    raise newException(ValueError, "debug text byte limit exceeds this platform")
+
+when defined(joltDebugRenderer):
+  func fromRaw(value: raw.DebugPointData): Vec3 =
+    Vec3(x: value.mX, y: value.mY, z: value.mZ)
+
+  func fromRaw(value: raw.DebugColorData): DebugColor =
+    DebugColor(r: value.mR, g: value.mG, b: value.mB, a: value.mA)
+
+  func toRaw(settings: DebugBodyDrawSettings): raw.DebugBodyDrawSettingsData =
+    result.mDrawGetSupportFunction = settings.drawGetSupportFunction
+    result.mDrawSupportDirection = settings.drawSupportDirection
+    result.mDrawGetSupportingFace = settings.drawGetSupportingFace
+    result.mDrawShape = settings.drawShape
+    result.mDrawShapeWireframe = settings.drawShapeWireframe
+    result.mDrawShapeColor = uint8(ord(settings.shapeColor))
+    result.mDrawBoundingBox = settings.drawBoundingBox
+    result.mDrawCenterOfMassTransform = settings.drawCenterOfMassTransform
+    result.mDrawWorldTransform = settings.drawWorldTransform
+    result.mDrawVelocity = settings.drawVelocity
+    result.mDrawMassAndInertia = settings.drawMassAndInertia
+    result.mDrawSleepStats = settings.drawSleepStats
+    result.mDrawSoftBodyVertices = settings.drawSoftBodyVertices
+    result.mDrawSoftBodyVertexVelocities = settings.drawSoftBodyVertexVelocities
+    result.mDrawSoftBodyEdgeConstraints = settings.drawSoftBodyEdgeConstraints
+    result.mDrawSoftBodyBendConstraints = settings.drawSoftBodyBendConstraints
+    result.mDrawSoftBodyVolumeConstraints = settings.drawSoftBodyVolumeConstraints
+    result.mDrawSoftBodySkinConstraints = settings.drawSoftBodySkinConstraints
+    result.mDrawSoftBodyLRAConstraints = settings.drawSoftBodyLRAConstraints
+    result.mDrawSoftBodyRods = settings.drawSoftBodyRods
+    result.mDrawSoftBodyRodStates = settings.drawSoftBodyRodStates
+    result.mDrawSoftBodyRodBendTwistConstraints =
+      settings.drawSoftBodyRodBendTwistConstraints
+    result.mDrawSoftBodyPredictedBounds = settings.drawSoftBodyPredictedBounds
+    result.mDrawSoftBodyConstraintColor =
+      uint8(ord(settings.softBodyConstraintColor))
+
+  proc captureDebugDraw*(world: World;
+                         options = defaultDebugDrawOptions()): DebugDrawFrame =
+    ## Captures Jolt's body and constraint diagnostics as detached primitives.
+    ## No Nim callback is retained or invoked by Jolt.
+    world.requireOpen()
+    options.cameraPosition.requireFinite("debug camera position")
+    options.limits.validate()
+    world.requireBodyFilter(options.bodyFilter)
+
+    let collector = world.physics.captureDebugDraw(
+      options.cameraPosition.toRaw,
+      options.bodySettings.toRaw,
+      options.bodyFilter.nativeBodyIds,
+      uint32(options.bodyFilter.len),
+      options.bodyFilter.enabled,
+      options.bodyFilter.includesOnly,
+      options.drawBodies,
+      options.drawConstraints,
+      options.drawConstraintLimits,
+      options.drawConstraintReferenceFrames,
+      uint32(options.limits.maxLines),
+      uint32(options.limits.maxTriangles),
+      uint32(options.limits.maxTexts),
+      csize_t(options.limits.maxTextBytes))
+    if collector.isNil:
+      raise newException(JoltError, "Jolt could not capture debug drawing")
+    defer: raw.delete(collector)
+
+    result.droppedLines = collector.droppedDebugLineCount()
+    result.droppedTriangles = collector.droppedDebugTriangleCount()
+    result.droppedTexts = collector.droppedDebugTextCount()
+
+    result.lines = newSeq[DebugLine](int(collector.debugLineCount()))
+    for index in 0 ..< result.lines.len:
+      var value: raw.DebugLineData
+      if not collector.getDebugLine(uint32(index), addr value):
+        raise newException(JoltError, "Jolt returned an invalid debug line")
+      result.lines[index] = DebugLine(
+        fromPosition: value.mFrom.fromRaw,
+        toPosition: value.mTo.fromRaw,
+        color: value.mColor.fromRaw)
+
+    result.triangles =
+      newSeq[DebugTriangle](int(collector.debugTriangleCount()))
+    for index in 0 ..< result.triangles.len:
+      var value: raw.DebugTriangleData
+      if not collector.getDebugTriangle(uint32(index), addr value):
+        raise newException(JoltError, "Jolt returned an invalid debug triangle")
+      result.triangles[index] = DebugTriangle(
+        v1: value.mV1.fromRaw,
+        v2: value.mV2.fromRaw,
+        v3: value.mV3.fromRaw,
+        color: value.mColor.fromRaw,
+        castsShadow: value.mCastsShadow)
+
+    result.texts = newSeq[DebugText](int(collector.debugTextCount()))
+    for index in 0 ..< result.texts.len:
+      var value: raw.DebugTextData
+      if not collector.getDebugText(uint32(index), addr value):
+        raise newException(JoltError, "Jolt returned invalid debug text")
+      if value.mTextLength > 0 and value.mText.isNil:
+        raise newException(JoltError, "Jolt returned missing debug text")
+      var text = newString(int(value.mTextLength))
+      if text.len > 0:
+        copyMem(addr text[0], value.mText, text.len)
+      result.texts[index] = DebugText(
+        position: value.mPosition.fromRaw,
+        text: text,
+        color: value.mColor.fromRaw,
+        height: value.mHeight)
+else:
+  proc captureDebugDraw*(world: World;
+                         options = defaultDebugDrawOptions()): DebugDrawFrame =
+    ## Enable this API with `-d:joltDebugRenderer` and a matching Jolt build.
+    discard world
+    discard options
+    raise newException(
+      JoltError,
+      "debug drawing requires -d:joltDebugRenderer and a matching Jolt build")
 
 func querySubShape*(bodyId: BodyId; subShapeId: uint32): QuerySubShape =
   QuerySubShape(bodyId: bodyId, subShapeId: subShapeId)

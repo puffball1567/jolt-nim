@@ -61,3 +61,57 @@ jobs:
       - name: Run native binding tests
         shell: bash
         run: tests/run_jolt_tests.sh _deps/Jolt _deps/jolt-build/libJolt.a
+
+  debug-renderer-tests:
+    name: Debug renderer / ${{ matrix.os }} / Nim 2.2
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-22.04
+          - macos-15-intel
+          - windows-2022
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Nim
+        uses: jiro4989/setup-nim-action@v2
+        with:
+          nim-version: 2.2.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Fetch Jolt Physics 5.6.0
+        shell: bash
+        run: git clone --branch v5.6.0 --depth 1 https://github.com/jrouwe/JoltPhysics.git _deps/Jolt
+
+      - name: Configure Jolt Physics with debug rendering
+        shell: bash
+        run: >-
+          cmake -S _deps/Jolt/Build -B _deps/jolt-debug-build -G Ninja
+          -DCMAKE_BUILD_TYPE=Distribution
+          -DCMAKE_CXX_COMPILER=g++
+          -DDEBUG_RENDERER_IN_DISTRIBUTION=ON
+          -DENABLE_ALL_WARNINGS=OFF
+          -DTARGET_UNIT_TESTS=OFF
+          -DTARGET_HELLO_WORLD=OFF
+          -DTARGET_PERFORMANCE_TEST=OFF
+          -DTARGET_SAMPLES=OFF
+          -DTARGET_VIEWER=OFF
+          -DJPH_USE_DX12=OFF
+          -DJPH_USE_VK=OFF
+          -DJPH_USE_MTL=OFF
+          -DJPH_USE_CPU_COMPUTE=ON
+          -DINTERPROCEDURAL_OPTIMIZATION=OFF
+
+      - name: Build Jolt Physics
+        shell: bash
+        run: cmake --build _deps/jolt-debug-build --target Jolt --parallel 2
+
+      - name: Run debug renderer binding tests
+        shell: bash
+        run: >-
+          tests/run_jolt_debug_renderer_test.sh
+          _deps/Jolt _deps/jolt-debug-build/libJolt.a

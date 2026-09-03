@@ -1133,9 +1133,34 @@ options exported by that build instead. The high-level world constructor checks
 Jolt's configuration/version ID before initialization and rejects mismatches.
 
 When Jolt is built with `JPH_DEBUG_RENDERER`, add that same definition to the
-Nim C++ translation unit. `jolt/raw` then exposes the complete renderer,
-recorder/playback, body/shape/constraint/soft-body draw surface and callback
-adapters. A matching configuration can be checked with:
+Nim C++ translation unit by compiling with `-d:joltDebugRenderer`. `jolt/raw`
+then exposes the complete renderer, recorder/playback,
+body/shape/constraint/soft-body draw surface and callback adapters. The
+high-level API can capture renderer-independent diagnostics without retaining
+Nim callbacks:
+
+```nim
+var debugOptions = defaultDebugDrawOptions()
+debugOptions.cameraPosition = vec3(0, 8, -12)
+debugOptions.bodySettings.drawShapeWireframe = true
+debugOptions.bodySettings.drawVelocity = true
+debugOptions.drawConstraints = true
+debugOptions.bodyFilter = world.queryBodyFilter(bodyQueryCriteria(
+  motionTypes = {MotionType.Dynamic}))
+
+let debugFrame = world.captureDebugDraw(debugOptions)
+for line in debugFrame.lines:
+  # Send line.fromPosition, line.toPosition and line.color to raylib, naylib,
+  # SDL3 or another renderer.
+  discard
+```
+
+`DebugDrawFrame` owns detached line, triangle and text values. Capture limits
+bound its memory use; `truncated` and the three `dropped...` counters report
+overflow. Body filters apply to body drawing, while constraint diagnostics
+remain world-wide. Without the compile-time option, `debugRendererEnabled()`
+returns false and `captureDebugDraw` raises `JoltError`. A matching
+configuration can be checked with:
 
 ```sh
 tests/run_jolt_debug_renderer_test.sh \
@@ -1203,7 +1228,8 @@ examples/run_sdl3_demo.sh \
 
 ## Tests
 
-The native suite contains 299 high-level cases plus raw ABI/configuration checks.
+The native suite contains 300 standard high-level cases, four debug-renderer
+high-level cases, plus raw ABI/configuration checks.
 It covers shape validation and contacts, body lifetime and dynamics, all twelve
 constraint families, narrow- and broad-phase queries, collision groups, sensors,
 triangle-mesh, height-field, decorated shapes and live mutable compounds,
@@ -1344,8 +1370,8 @@ The current implementation covers:
   settings reach Jolt;
 - capacity error reporting from `PhysicsSystem::Update`.
 
-High-level debug-renderer integration, additional ownership-safe wrappers for
-native simulation callbacks and property-based sub-shape query filters,
+Additional ownership-safe wrappers for native simulation callbacks and
+property-based sub-shape query filters,
 broad cross-version ObjectStream compatibility guarantees,
 arbitrary soft-body contact callbacks, soft-soft collision, a dedicated hair
 abstraction, double
