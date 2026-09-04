@@ -209,7 +209,7 @@ namespace joltnim_raw_detail
 #ifdef JPH_DEBUG_RENDERER
 using DebugLineCallback = void (*)(void *, JPH::RVec3 *, JPH::RVec3 *, JPH::Color *);
 using DebugTriangleCallback = void (*)(void *, JPH::RVec3 *, JPH::RVec3 *, JPH::RVec3 *, JPH::Color *, JPH::DebugRenderer::ECastShadow);
-using DebugTextCallback = void (*)(void *, JPH::RVec3 *, const char *, size_t, JPH::Color *, float);
+using DebugTextCallback = void (*)(void *, JPH::RVec3 *, char *, size_t, JPH::Color *, float);
 using BodyDrawCallback = bool (*)(void *, JPH::Body *);
 
 class DebugRendererSimpleAdapter final : public JPH::DebugRendererSimple
@@ -249,7 +249,8 @@ public:
         {
             JPH::RVec3 position = inPosition;
             JPH::Color color = inColor;
-            mText(mUserData, &position, inString.data(), inString.size(), &color, inHeight);
+            std::string text(inString);
+            mText(mUserData, &position, text.data(), text.size(), &color, inHeight);
         }
     }
 
