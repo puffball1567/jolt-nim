@@ -2,7 +2,7 @@
 
 All notable changes to joltnim are documented in this file.
 
-## 0.2.0 - Unreleased
+## 0.2.0 - 2026-09-05
 
 ### Added
 
