@@ -40,7 +40,7 @@ Applications import the ownership-safe API with `import jolt`, or the direct
 bindings with `import jolt/raw`. Jolt remains a separate native dependency;
 the exact compiler and linker options are described in [Build](#build).
 
-The latest stable release is `v0.1.1`. See [CHANGELOG.md](CHANGELOG.md) for
+The latest stable release is `v0.2.0`. See [CHANGELOG.md](CHANGELOG.md) for
 release contents and [CONTRIBUTING.md](CONTRIBUTING.md) before submitting a
 change.
 
