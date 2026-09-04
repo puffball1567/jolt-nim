@@ -12,6 +12,11 @@ All notable changes to joltnim are documented in this file.
   sensor, soft-body, broad-phase and user-data state.
 - Caller-thread Nim predicates that resolve to reusable native query filters
   without invoking Nim from Jolt worker threads.
+- Renderer-independent high-level debug drawing snapshots for bodies,
+  constraints, limits and reference frames when Jolt's debug renderer is
+  enabled.
+- Bounded line, triangle and text capture with reusable body filters and
+  explicit dropped-primitive reporting.
 
 ## 0.1.1 - 2026-09-01
 

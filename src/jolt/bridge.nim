@@ -7,6 +7,9 @@ import std/os
 
 const joltBindingsHeader = currentSourcePath.parentDir / "private" / "jolt_bindings.hpp"
 
+when defined(joltDebugRenderer):
+  {.passC: "-DJPH_DEBUG_RENDERER".}
+
 type
   ObjectLayer* = uint16
 
@@ -131,6 +134,60 @@ type
   BroadPhaseLayerInterfaceTable* {.importcpp: "JPH::BroadPhaseLayerInterfaceTable", header: joltBindingsHeader.} = object
   ObjectVsBroadPhaseLayerFilterTable* {.importcpp: "JPH::ObjectVsBroadPhaseLayerFilterTable", header: joltBindingsHeader.} = object
   GroupFilterTable* {.importcpp: "JPH::GroupFilterTable", header: joltBindingsHeader.} = object
+
+when defined(joltDebugRenderer):
+  type
+    DebugDrawCollector* {.importcpp: "joltnim_detail::DebugDrawCollector",
+                          header: joltBindingsHeader.} = object
+    DebugPointData* {.importcpp: "joltnim_detail::DebugPointData",
+                      header: joltBindingsHeader.} = object
+      mX*, mY*, mZ*: cfloat
+    DebugColorData* {.importcpp: "joltnim_detail::DebugColorData",
+                      header: joltBindingsHeader.} = object
+      mR*, mG*, mB*, mA*: uint8
+    DebugLineData* {.importcpp: "joltnim_detail::DebugLineData",
+                     header: joltBindingsHeader.} = object
+      mFrom*, mTo*: DebugPointData
+      mColor*: DebugColorData
+    DebugTriangleData* {.importcpp: "joltnim_detail::DebugTriangleData",
+                         header: joltBindingsHeader.} = object
+      mV1*, mV2*, mV3*: DebugPointData
+      mColor*: DebugColorData
+      mCastsShadow*: bool
+    DebugTextData* {.importcpp: "joltnim_detail::DebugTextData",
+                     header: joltBindingsHeader.} = object
+      mPosition*: DebugPointData
+      mColor*: DebugColorData
+      mHeight*: cfloat
+      mText*: cstring
+      mTextLength*: csize_t
+    DebugBodyDrawSettingsData* {.
+        importcpp: "joltnim_detail::DebugBodyDrawSettingsData",
+        header: joltBindingsHeader.} = object
+      mDrawGetSupportFunction*: bool
+      mDrawSupportDirection*: bool
+      mDrawGetSupportingFace*: bool
+      mDrawShape*: bool
+      mDrawShapeWireframe*: bool
+      mDrawShapeColor*: uint8
+      mDrawBoundingBox*: bool
+      mDrawCenterOfMassTransform*: bool
+      mDrawWorldTransform*: bool
+      mDrawVelocity*: bool
+      mDrawMassAndInertia*: bool
+      mDrawSleepStats*: bool
+      mDrawSoftBodyVertices*: bool
+      mDrawSoftBodyVertexVelocities*: bool
+      mDrawSoftBodyEdgeConstraints*: bool
+      mDrawSoftBodyBendConstraints*: bool
+      mDrawSoftBodyVolumeConstraints*: bool
+      mDrawSoftBodySkinConstraints*: bool
+      mDrawSoftBodyLRAConstraints*: bool
+      mDrawSoftBodyRods*: bool
+      mDrawSoftBodyRodStates*: bool
+      mDrawSoftBodyRodBendTwistConstraints*: bool
+      mDrawSoftBodyPredictedBounds*: bool
+      mDrawSoftBodyConstraintColor*: uint8
 
 proc acquireJolt*(): bool {.importcpp: "joltnim_detail::AcquireJolt()", header: joltBindingsHeader.}
 proc releaseJolt*() {.importcpp: "joltnim_detail::ReleaseJolt()", header: joltBindingsHeader.}
@@ -2649,3 +2706,45 @@ proc byteSize*(state: ptr WorldStateHandle): csize_t
     header: joltBindingsHeader.}
 proc delete*(state: ptr WorldStateHandle)
   {.importcpp: "delete #", header: joltBindingsHeader.}
+
+when defined(joltDebugRenderer):
+  proc captureDebugDraw*(self: ptr PhysicsSystem; cameraPosition: Vec3;
+      settings: DebugBodyDrawSettingsData; bodyIds: ptr uint32;
+      bodyIdCount: uint32; bodyFilterEnabled, includeBodies,
+      drawBodies, drawConstraints, drawConstraintLimits,
+      drawConstraintReferenceFrames: bool; maxLines, maxTriangles,
+      maxTexts: uint32; maxTextBytes: csize_t): ptr DebugDrawCollector
+    {.importcpp: "joltnim_detail::CaptureDebugDraw(@)",
+      header: joltBindingsHeader.}
+  proc delete*(collector: ptr DebugDrawCollector)
+    {.importcpp: "delete #", header: joltBindingsHeader.}
+  proc debugLineCount*(collector: ptr DebugDrawCollector): uint32
+    {.importcpp: "joltnim_detail::DebugLineCount(@)", noSideEffect,
+      header: joltBindingsHeader.}
+  proc debugTriangleCount*(collector: ptr DebugDrawCollector): uint32
+    {.importcpp: "joltnim_detail::DebugTriangleCount(@)", noSideEffect,
+      header: joltBindingsHeader.}
+  proc debugTextCount*(collector: ptr DebugDrawCollector): uint32
+    {.importcpp: "joltnim_detail::DebugTextCount(@)", noSideEffect,
+      header: joltBindingsHeader.}
+  proc droppedDebugLineCount*(collector: ptr DebugDrawCollector): uint64
+    {.importcpp: "joltnim_detail::DroppedDebugLineCount(@)", noSideEffect,
+      header: joltBindingsHeader.}
+  proc droppedDebugTriangleCount*(collector: ptr DebugDrawCollector): uint64
+    {.importcpp: "joltnim_detail::DroppedDebugTriangleCount(@)", noSideEffect,
+      header: joltBindingsHeader.}
+  proc droppedDebugTextCount*(collector: ptr DebugDrawCollector): uint64
+    {.importcpp: "joltnim_detail::DroppedDebugTextCount(@)", noSideEffect,
+      header: joltBindingsHeader.}
+  proc getDebugLine*(collector: ptr DebugDrawCollector; index: uint32;
+                     output: ptr DebugLineData): bool
+    {.importcpp: "joltnim_detail::GetDebugLine(@)", noSideEffect,
+      header: joltBindingsHeader.}
+  proc getDebugTriangle*(collector: ptr DebugDrawCollector; index: uint32;
+                         output: ptr DebugTriangleData): bool
+    {.importcpp: "joltnim_detail::GetDebugTriangle(@)", noSideEffect,
+      header: joltBindingsHeader.}
+  proc getDebugText*(collector: ptr DebugDrawCollector; index: uint32;
+                     output: ptr DebugTextData): bool
+    {.importcpp: "joltnim_detail::GetDebugText(@)", noSideEffect,
+      header: joltBindingsHeader.}

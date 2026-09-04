@@ -9505,7 +9505,8 @@ proc constructDebugRenderer_Geometry*(inBatch: DebugRenderer_Batch;
     header: joltApiHeader.}
 proc GetLOD*(self: DebugRenderer_Geometry; inCameraPosition: Vec3Arg;
     inWorldSpaceBounds: AABox; inLODScaleSq: cfloat): ptr DebugRenderer_LOD
-  {.importcpp: "&(#.GetLOD(@))", noSideEffect, header: joltApiHeader.}
+  {.importcpp: "joltnim_raw_detail::GetGeometryLOD(@)", noSideEffect,
+    header: joltApiHeader.}
 proc sCalculateBounds*(_: type DebugRenderer; inVertices: ptr DebugRenderer_Vertex;
     inVertexCount: cint): AABox
   {.importcpp: "JPH::DebugRenderer::sCalculateBounds(@)", header: joltApiHeader.}

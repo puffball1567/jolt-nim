@@ -80,6 +80,9 @@
 #include <Jolt/Physics/Vehicle/MotorcycleController.h>
 #include <Jolt/Physics/Vehicle/TrackedVehicleController.h>
 #include <Jolt/Physics/Vehicle/WheeledVehicleController.h>
+#ifdef JPH_DEBUG_RENDERER
+#include <Jolt/Renderer/DebugRendererSimple.h>
+#endif
 #include <algorithm>
 #include <atomic>
 #include <cmath>
@@ -9737,6 +9740,350 @@ inline std::uint32_t OverlapConvex(
     }
     return copied;
 }
+
+#ifdef JPH_DEBUG_RENDERER
+struct DebugPointData
+{
+    float mX = 0.0f;
+    float mY = 0.0f;
+    float mZ = 0.0f;
+};
+
+struct DebugColorData
+{
+    std::uint8_t mR = 0;
+    std::uint8_t mG = 0;
+    std::uint8_t mB = 0;
+    std::uint8_t mA = 0;
+};
+
+struct DebugLineData
+{
+    DebugPointData mFrom;
+    DebugPointData mTo;
+    DebugColorData mColor;
+};
+
+struct DebugTriangleData
+{
+    DebugPointData mV1;
+    DebugPointData mV2;
+    DebugPointData mV3;
+    DebugColorData mColor;
+    bool mCastsShadow = false;
+};
+
+struct DebugTextData
+{
+    DebugPointData mPosition;
+    DebugColorData mColor;
+    float mHeight = 0.0f;
+    const char *mText = nullptr;
+    std::size_t mTextLength = 0;
+};
+
+struct DebugBodyDrawSettingsData
+{
+    bool mDrawGetSupportFunction = false;
+    bool mDrawSupportDirection = false;
+    bool mDrawGetSupportingFace = false;
+    bool mDrawShape = true;
+    bool mDrawShapeWireframe = false;
+    std::uint8_t mDrawShapeColor = 2;
+    bool mDrawBoundingBox = false;
+    bool mDrawCenterOfMassTransform = false;
+    bool mDrawWorldTransform = false;
+    bool mDrawVelocity = false;
+    bool mDrawMassAndInertia = false;
+    bool mDrawSleepStats = false;
+    bool mDrawSoftBodyVertices = false;
+    bool mDrawSoftBodyVertexVelocities = false;
+    bool mDrawSoftBodyEdgeConstraints = false;
+    bool mDrawSoftBodyBendConstraints = false;
+    bool mDrawSoftBodyVolumeConstraints = false;
+    bool mDrawSoftBodySkinConstraints = false;
+    bool mDrawSoftBodyLRAConstraints = false;
+    bool mDrawSoftBodyRods = false;
+    bool mDrawSoftBodyRodStates = false;
+    bool mDrawSoftBodyRodBendTwistConstraints = false;
+    bool mDrawSoftBodyPredictedBounds = false;
+    std::uint8_t mDrawSoftBodyConstraintColor = 0;
+};
+
+inline DebugPointData ToDebugPoint(JPH::RVec3Arg inValue)
+{
+    return {
+        static_cast<float>(inValue.GetX()),
+        static_cast<float>(inValue.GetY()),
+        static_cast<float>(inValue.GetZ())};
+}
+
+inline DebugColorData ToDebugColor(JPH::ColorArg inValue)
+{
+    return {inValue.r, inValue.g, inValue.b, inValue.a};
+}
+
+class DebugDrawCollector final : public JPH::DebugRendererSimple
+{
+public:
+    DebugDrawCollector(
+        std::uint32_t inMaxLines,
+        std::uint32_t inMaxTriangles,
+        std::uint32_t inMaxTexts,
+        std::size_t inMaxTextBytes)
+        : mMaxLines(inMaxLines),
+          mMaxTriangles(inMaxTriangles),
+          mMaxTexts(inMaxTexts),
+          mMaxTextBytes(inMaxTextBytes)
+    {
+        Initialize();
+    }
+
+    void DrawLine(
+        JPH::RVec3Arg inFrom,
+        JPH::RVec3Arg inTo,
+        JPH::ColorArg inColor) override
+    {
+        std::lock_guard<std::mutex> lock(mMutex);
+        if (mLines.size() >= mMaxLines)
+        {
+            ++mDroppedLines;
+            return;
+        }
+        mLines.push_back({
+            ToDebugPoint(inFrom), ToDebugPoint(inTo), ToDebugColor(inColor)});
+    }
+
+    void DrawTriangle(
+        JPH::RVec3Arg inV1,
+        JPH::RVec3Arg inV2,
+        JPH::RVec3Arg inV3,
+        JPH::ColorArg inColor,
+        JPH::DebugRenderer::ECastShadow inCastShadow) override
+    {
+        std::lock_guard<std::mutex> lock(mMutex);
+        if (mTriangles.size() >= mMaxTriangles)
+        {
+            ++mDroppedTriangles;
+            return;
+        }
+        mTriangles.push_back({
+            ToDebugPoint(inV1),
+            ToDebugPoint(inV2),
+            ToDebugPoint(inV3),
+            ToDebugColor(inColor),
+            inCastShadow == JPH::DebugRenderer::ECastShadow::On});
+    }
+
+    void DrawText3D(
+        JPH::RVec3Arg inPosition,
+        const std::string_view &inString,
+        JPH::ColorArg inColor,
+        float inHeight) override
+    {
+        std::lock_guard<std::mutex> lock(mMutex);
+        if (mTexts.size() >= mMaxTexts ||
+            inString.size() > mMaxTextBytes - std::min(mTextBytes, mMaxTextBytes))
+        {
+            ++mDroppedTexts;
+            return;
+        }
+        mTexts.push_back({
+            ToDebugPoint(inPosition),
+            ToDebugColor(inColor),
+            inHeight,
+            std::string(inString)});
+        mTextBytes += inString.size();
+    }
+
+    struct StoredText
+    {
+        DebugPointData mPosition;
+        DebugColorData mColor;
+        float mHeight;
+        std::string mText;
+    };
+
+    std::vector<DebugLineData> mLines;
+    std::vector<DebugTriangleData> mTriangles;
+    std::vector<StoredText> mTexts;
+    std::uint64_t mDroppedLines = 0;
+    std::uint64_t mDroppedTriangles = 0;
+    std::uint64_t mDroppedTexts = 0;
+
+private:
+    std::mutex mMutex;
+    std::size_t mMaxLines;
+    std::size_t mMaxTriangles;
+    std::size_t mMaxTexts;
+    std::size_t mMaxTextBytes;
+    std::size_t mTextBytes = 0;
+};
+
+class DebugBodyIDFilter final : public JPH::BodyDrawFilter
+{
+public:
+    DebugBodyIDFilter(
+        const std::uint32_t *inBodyIDs,
+        std::uint32_t inBodyIDCount,
+        bool inIncludeBodies)
+        : mBodyIDs(inBodyIDs),
+          mBodyIDCount(inBodyIDCount),
+          mIncludeBodies(inIncludeBodies) { }
+
+    bool ShouldDraw(const JPH::Body &inBody) const override
+    {
+        const std::uint32_t id = inBody.GetID().GetIndexAndSequenceNumber();
+        for (std::uint32_t index = 0; index < mBodyIDCount; ++index)
+            if (mBodyIDs[index] == id)
+                return mIncludeBodies;
+        return !mIncludeBodies;
+    }
+
+private:
+    const std::uint32_t *mBodyIDs;
+    std::uint32_t mBodyIDCount;
+    bool mIncludeBodies;
+};
+
+inline JPH::BodyManager::DrawSettings ToBodyDrawSettings(
+    const DebugBodyDrawSettingsData &inSettings)
+{
+    JPH::BodyManager::DrawSettings result;
+    result.mDrawGetSupportFunction = inSettings.mDrawGetSupportFunction;
+    result.mDrawSupportDirection = inSettings.mDrawSupportDirection;
+    result.mDrawGetSupportingFace = inSettings.mDrawGetSupportingFace;
+    result.mDrawShape = inSettings.mDrawShape;
+    result.mDrawShapeWireframe = inSettings.mDrawShapeWireframe;
+    result.mDrawShapeColor = static_cast<JPH::BodyManager::EShapeColor>(
+        inSettings.mDrawShapeColor);
+    result.mDrawBoundingBox = inSettings.mDrawBoundingBox;
+    result.mDrawCenterOfMassTransform = inSettings.mDrawCenterOfMassTransform;
+    result.mDrawWorldTransform = inSettings.mDrawWorldTransform;
+    result.mDrawVelocity = inSettings.mDrawVelocity;
+    result.mDrawMassAndInertia = inSettings.mDrawMassAndInertia;
+    result.mDrawSleepStats = inSettings.mDrawSleepStats;
+    result.mDrawSoftBodyVertices = inSettings.mDrawSoftBodyVertices;
+    result.mDrawSoftBodyVertexVelocities = inSettings.mDrawSoftBodyVertexVelocities;
+    result.mDrawSoftBodyEdgeConstraints = inSettings.mDrawSoftBodyEdgeConstraints;
+    result.mDrawSoftBodyBendConstraints = inSettings.mDrawSoftBodyBendConstraints;
+    result.mDrawSoftBodyVolumeConstraints = inSettings.mDrawSoftBodyVolumeConstraints;
+    result.mDrawSoftBodySkinConstraints = inSettings.mDrawSoftBodySkinConstraints;
+    result.mDrawSoftBodyLRAConstraints = inSettings.mDrawSoftBodyLRAConstraints;
+    result.mDrawSoftBodyRods = inSettings.mDrawSoftBodyRods;
+    result.mDrawSoftBodyRodStates = inSettings.mDrawSoftBodyRodStates;
+    result.mDrawSoftBodyRodBendTwistConstraints =
+        inSettings.mDrawSoftBodyRodBendTwistConstraints;
+    result.mDrawSoftBodyPredictedBounds = inSettings.mDrawSoftBodyPredictedBounds;
+    result.mDrawSoftBodyConstraintColor =
+        static_cast<JPH::ESoftBodyConstraintColor>(
+            inSettings.mDrawSoftBodyConstraintColor);
+    return result;
+}
+
+inline DebugDrawCollector *CaptureDebugDraw(
+    JPH::PhysicsSystem *inSystem,
+    JPH::Vec3Arg inCameraPosition,
+    const DebugBodyDrawSettingsData &inSettings,
+    const std::uint32_t *inBodyIDs,
+    std::uint32_t inBodyIDCount,
+    bool inBodyFilterEnabled,
+    bool inIncludeBodies,
+    bool inDrawBodies,
+    bool inDrawConstraints,
+    bool inDrawConstraintLimits,
+    bool inDrawConstraintReferenceFrames,
+    std::uint32_t inMaxLines,
+    std::uint32_t inMaxTriangles,
+    std::uint32_t inMaxTexts,
+    std::size_t inMaxTextBytes)
+{
+    auto collector = std::make_unique<DebugDrawCollector>(
+        inMaxLines, inMaxTriangles, inMaxTexts, inMaxTextBytes);
+    collector->SetCameraPos(inCameraPosition);
+    DebugBodyIDFilter filter(inBodyIDs, inBodyIDCount, inIncludeBodies);
+    if (inDrawBodies)
+        inSystem->DrawBodies(
+            ToBodyDrawSettings(inSettings),
+            collector.get(),
+            inBodyFilterEnabled? &filter : nullptr);
+    if (inDrawConstraints)
+        inSystem->DrawConstraints(collector.get());
+    if (inDrawConstraintLimits)
+        inSystem->DrawConstraintLimits(collector.get());
+    if (inDrawConstraintReferenceFrames)
+        inSystem->DrawConstraintReferenceFrame(collector.get());
+    return collector.release();
+}
+
+inline bool GetDebugLine(
+    const DebugDrawCollector *inCollector,
+    std::uint32_t inIndex,
+    DebugLineData *outLine)
+{
+    if (inIndex >= inCollector->mLines.size())
+        return false;
+    *outLine = inCollector->mLines[inIndex];
+    return true;
+}
+
+inline bool GetDebugTriangle(
+    const DebugDrawCollector *inCollector,
+    std::uint32_t inIndex,
+    DebugTriangleData *outTriangle)
+{
+    if (inIndex >= inCollector->mTriangles.size())
+        return false;
+    *outTriangle = inCollector->mTriangles[inIndex];
+    return true;
+}
+
+inline bool GetDebugText(
+    const DebugDrawCollector *inCollector,
+    std::uint32_t inIndex,
+    DebugTextData *outText)
+{
+    if (inIndex >= inCollector->mTexts.size())
+        return false;
+    const DebugDrawCollector::StoredText &text = inCollector->mTexts[inIndex];
+    outText->mPosition = text.mPosition;
+    outText->mColor = text.mColor;
+    outText->mHeight = text.mHeight;
+    outText->mText = text.mText.data();
+    outText->mTextLength = text.mText.size();
+    return true;
+}
+
+inline std::uint32_t DebugLineCount(const DebugDrawCollector *inCollector)
+{
+    return static_cast<std::uint32_t>(inCollector->mLines.size());
+}
+
+inline std::uint32_t DebugTriangleCount(const DebugDrawCollector *inCollector)
+{
+    return static_cast<std::uint32_t>(inCollector->mTriangles.size());
+}
+
+inline std::uint32_t DebugTextCount(const DebugDrawCollector *inCollector)
+{
+    return static_cast<std::uint32_t>(inCollector->mTexts.size());
+}
+
+inline std::uint64_t DroppedDebugLineCount(const DebugDrawCollector *inCollector)
+{
+    return inCollector->mDroppedLines;
+}
+
+inline std::uint64_t DroppedDebugTriangleCount(const DebugDrawCollector *inCollector)
+{
+    return inCollector->mDroppedTriangles;
+}
+
+inline std::uint64_t DroppedDebugTextCount(const DebugDrawCollector *inCollector)
+{
+    return inCollector->mDroppedTexts;
+}
+#endif
 
 inline std::uint32_t Update(
     JPH::PhysicsSystem *ioSystem,

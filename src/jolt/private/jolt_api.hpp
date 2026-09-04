@@ -207,10 +207,10 @@
 namespace joltnim_raw_detail
 {
 #ifdef JPH_DEBUG_RENDERER
-using DebugLineCallback = void (*)(void *, const JPH::RVec3 *, const JPH::RVec3 *, const JPH::Color *);
-using DebugTriangleCallback = void (*)(void *, const JPH::RVec3 *, const JPH::RVec3 *, const JPH::RVec3 *, const JPH::Color *, JPH::DebugRenderer::ECastShadow);
-using DebugTextCallback = void (*)(void *, const JPH::RVec3 *, const char *, size_t, const JPH::Color *, float);
-using BodyDrawCallback = bool (*)(void *, const JPH::Body *);
+using DebugLineCallback = void (*)(void *, JPH::RVec3 *, JPH::RVec3 *, JPH::Color *);
+using DebugTriangleCallback = void (*)(void *, JPH::RVec3 *, JPH::RVec3 *, JPH::RVec3 *, JPH::Color *, JPH::DebugRenderer::ECastShadow);
+using DebugTextCallback = void (*)(void *, JPH::RVec3 *, char *, size_t, JPH::Color *, float);
+using BodyDrawCallback = bool (*)(void *, JPH::Body *);
 
 class DebugRendererSimpleAdapter final : public JPH::DebugRendererSimple
 {
@@ -221,13 +221,24 @@ public:
     void DrawLine(JPH::RVec3Arg inFrom, JPH::RVec3Arg inTo, JPH::ColorArg inColor) override
     {
         if (mLine != nullptr)
-            mLine(mUserData, &inFrom, &inTo, &inColor);
+        {
+            JPH::RVec3 from = inFrom;
+            JPH::RVec3 to = inTo;
+            JPH::Color color = inColor;
+            mLine(mUserData, &from, &to, &color);
+        }
     }
 
     void DrawTriangle(JPH::RVec3Arg inV1, JPH::RVec3Arg inV2, JPH::RVec3Arg inV3, JPH::ColorArg inColor, JPH::DebugRenderer::ECastShadow inCastShadow) override
     {
         if (mTriangle != nullptr)
-            mTriangle(mUserData, &inV1, &inV2, &inV3, &inColor, inCastShadow);
+        {
+            JPH::RVec3 v1 = inV1;
+            JPH::RVec3 v2 = inV2;
+            JPH::RVec3 v3 = inV3;
+            JPH::Color color = inColor;
+            mTriangle(mUserData, &v1, &v2, &v3, &color, inCastShadow);
+        }
         else
             JPH::DebugRendererSimple::DrawTriangle(inV1, inV2, inV3, inColor, inCastShadow);
     }
@@ -235,7 +246,12 @@ public:
     void DrawText3D(JPH::RVec3Arg inPosition, const std::string_view &inString, JPH::ColorArg inColor, float inHeight) override
     {
         if (mText != nullptr)
-            mText(mUserData, &inPosition, inString.data(), inString.size(), &inColor, inHeight);
+        {
+            JPH::RVec3 position = inPosition;
+            JPH::Color color = inColor;
+            std::string text(inString);
+            mText(mUserData, &position, text.data(), text.size(), &color, inHeight);
+        }
     }
 
 private:
@@ -253,7 +269,8 @@ public:
 
     bool ShouldDraw(const JPH::Body &inBody) const override
     {
-        return mCallback == nullptr || mCallback(mUserData, &inBody);
+        return mCallback == nullptr ||
+            mCallback(mUserData, const_cast<JPH::Body *>(&inBody));
     }
 
 private:
@@ -264,6 +281,15 @@ private:
 inline JPH::DebugRenderer *AsDebugRenderer(DebugRendererSimpleAdapter *inAdapter) { return inAdapter; }
 inline JPH::DebugRendererSimple *AsDebugRendererSimple(DebugRendererSimpleAdapter *inAdapter) { return inAdapter; }
 inline JPH::BodyDrawFilter *AsBodyDrawFilter(BodyDrawFilterAdapter *inAdapter) { return inAdapter; }
+inline JPH::DebugRenderer::LOD *GetGeometryLOD(
+    const JPH::DebugRenderer::Geometry &inGeometry,
+    JPH::Vec3Arg inCameraPosition,
+    const JPH::AABox &inWorldSpaceBounds,
+    float inLODScaleSq)
+{
+    return const_cast<JPH::DebugRenderer::LOD *>(
+        &inGeometry.GetLOD(inCameraPosition, inWorldSpaceBounds, inLODScaleSq));
+}
 #endif
 
 inline void RewindStringStream(std::stringstream &ioStream)
